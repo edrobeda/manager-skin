@@ -1,0 +1,71 @@
+<div class="container"> 
+  <div class="interno"> 
+    
+    <h1>Tabela de Pagamentos</h1>
+    
+    <table id="dataTable_default">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nome</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parcelas</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Crédito</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor</th>
+        </tr>
+        <tr>
+          <th colspan="5" class="px-6 py-4 text-center">
+           <h3 class="total-value text-lg font-semibold text-gray-900">Total: <%= variables.pagtos.reduce((acc, row) => acc + (row.valor || 0), 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></h3> 
+          </th>
+        </tr>
+        <tr>
+          <th><input type="text" class="filter-input w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Filtrar data..."></th>
+          <th><input type="text" class="filter-input w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Filtrar nome..."></th>
+          <th><input type="text" class="filter-input w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Filtrar parcelas..."></th>
+          <th><input type="text" class="filter-input w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Filtrar crédito..."></th>
+          <th><input type="text" class="filter-input w-full px-4 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Filtrar valor..."></th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+          <% variables.pagtos.filter(row => row !== null).forEach(row => { %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= row.data %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= row.nome %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <% if (row.parcelas && typeof row.parcelas === 'object') { %>
+                  <%= row.parcelas.atual %>/<%= row.parcelas.total %>
+                <% } else { %>
+                  <%= row.parcelas %>
+                <% } %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= row.credito || '-' %></td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"><%= row.valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) %></td>
+            </tr>
+          <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  <script>
+    document.querySelectorAll('.filter-input').forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        const searchText = e.target.value.toLowerCase();
+        const tbody = document.querySelector('tbody');
+        const rows = tbody.querySelectorAll('tr');
+        let total = 0;
+        rows.forEach(row => {
+          const cell = row.cells[index];
+          const text = cell.textContent.toLowerCase();
+          row.style.display = text.includes(searchText) ? '' : 'none';
+          if(text.includes(searchText)) {
+            let val = parseFloat(row.cells[4].textContent.replace('R$', ''))
+            if(val) {
+              console.log(val);
+              total += val;
+            }
+          }
+        });
+        document.querySelector('.total-value').textContent = `Total: ${total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+      });
+    });
+  </script>

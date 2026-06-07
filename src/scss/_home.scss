@@ -1,0 +1,346 @@
+$font-size-subtitulo: $font-subtitle-lg;
+$font-size-titulo: $font-title-lg;
+$font-size-body: $font-body-lg;
+$height: 120px;
+
+@media (max-width: $breakpoint-lg) {
+  $font-size-subtitulo: $font-subtitle-md;
+  $font-size-titulo: $font-title-md;
+  $font-size-body: $font-body-md;
+  $height: 100px;
+}
+@media (max-width: $breakpoint-sm) {
+  $font-size-subtitulo: $font-subtitle-sm;
+  $font-size-titulo: $font-title-sm;
+  $font-size-body: $font-body-sm;
+  $height: 40px;
+}
+
+.separador {
+  height:20px;
+}
+
+
+.fundo-topo {
+
+  $size: 780px;
+
+  // background: {
+  //   image: url('/images/fundo_topo.png');
+  //   size: cover;
+  //   position: center;
+  //   repeat: no-repeat;
+  // }
+  
+  .barra-superior {
+    width: 100%;
+    height: 42px;
+    background-color: $cor-primaria;
+    position: absolute;
+    top: 0;
+  }
+
+  .circulo {
+    width: $size;
+    height: $size;
+    border-radius: 0 0 50% 50%;
+    background-color: white;
+    position: absolute;
+    left: 50%;
+    top: -375px;
+    transform: translateX(-50%);
+    display: grid;
+    place-items: center;
+    z-index: 1;
+  }
+
+  .logo {
+    position: absolute;
+    top: 150px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .bg-titulo {
+    position: relative;
+    height: calc($height * 7);
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+
+    .solucoes {
+      font: {
+        size: $font-size-subtitulo;
+        weight: 900;
+      }
+      color: white;
+      top: calc($height * 4);
+      position: relative;
+    }
+
+    .game-on {
+      margin-top: calc($height * .3);
+      font: {
+        size: $font-size-titulo;
+        weight: 900;
+      }
+      color: white;
+    }
+    .chevron-down {
+      text-align: center;
+    }
+  }
+}
+
+.bloco-flutuante {
+  
+  width: 80vw;
+  height: calc($height * 3 + 100px);
+  max-width: 1200px;
+  background-color: $cor-secundaria;
+  position: relative;
+  margin: {
+    top: calc($height * -1);
+    bottom: calc($height + 100px);
+    left: auto;
+    right: auto;
+  }
+  border-radius: 65px;
+  padding: 50px;
+  text-align: center;
+  .interno {
+    display: grid;
+    grid: {
+      template-columns: repeat(1, 1fr);
+      template-rows: repeat(1, 1fr);
+    }
+    gap: 10px;
+
+  }
+
+  .titulo {
+    font: {
+      size: $font-size-titulo;
+      weight: 900;
+    }
+    color: white;
+  }
+
+  .descricao {
+    font: {
+      size: $font-size-subtitulo;
+      weight: 300;
+    }
+    color: white;
+  }
+
+  .icones-interno {
+    position: relative;
+    
+    top: calc($height * .5);
+    display: grid;
+    grid: {
+      template-columns: repeat(4, 1fr);
+      template-rows: repeat(1, 1fr);
+    }
+    gap: 10px;
+
+    .icone {
+      border-radius: 50%;
+      padding: 20px;
+      margin: 0 auto;
+
+      .icone-interno {
+        display: grid;
+        width: 100%;
+        text-align: center;
+        border-radius: 50%;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        color: $cor-secundaria;
+        $scale: 1.2;
+        @media (max-width: $breakpoint-lg) {
+          $scale: 1.2;
+        }
+        @media (max-width: $breakpoint-sm) {
+          $scale: 1;
+        }
+
+        .circulo {
+          align-content: center;
+          width: calc($height * $scale);
+          height: calc($height * $scale);
+          border-radius: 50%;
+          background-color: $cor-terciaria;
+          margin-bottom: 20px;
+        }
+
+        img {
+          width: $height;
+          height: $height;
+        }
+      }
+
+      .texto-interno {
+        margin: 0 auto;
+        
+        div {
+          width: 100% !important;
+          font: {
+            size: $font-size-body;
+            weight: 800;
+          }
+          color: $cor-secundaria;
+        }
+      }
+    }
+  }
+}
+
+.seja-unico {
+  max-width: 1200px;
+  position: relative;
+  margin: 0 auto;
+
+  .titulo {
+    text-align: center;
+    font: {
+      size: $font-size-titulo;
+      weight: 900;
+    }
+    color: $cor-terciaria;
+  }
+
+  .subtitulo {
+    text-align: center;
+    font: {
+      size: $font-size-subtitulo;
+      weight: 300;
+    }
+    color: $cor-secundaria;
+  }
+}
+
+.grid-exposicao {
+  display: grid;
+  grid: {
+    template-areas:
+      "img1  img1  texto1 texto1"
+      "texto2  texto3 img2 img3"
+      "texto4 texto4  img2 img3";
+    template-columns: 1fr 1fr 1fr 1fr;
+    template-rows: repeat(3, 240px);
+  }
+  gap: 1rem;
+  max-width: 1200px;
+  margin: auto;
+  padding: 2rem;
+  font-size: $font-size-body;
+  color: $cor-secundaria;
+
+  .item {
+    background: #f2f2f2;
+    border-radius: 20px;
+    padding: 1rem;
+    font-weight: bold;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @mixin background-image($url) {
+    background: {
+      image: url($url);
+      size: cover;
+      position: center;
+    }
+  }
+
+  .img-1 {
+    grid-area: img1;
+    @include background-image('/images/quiz1.png');
+  }
+
+  .texto-1 { grid-area: texto1; }
+  .texto-2 { grid-area: texto2; }
+  .texto-3 { grid-area: texto3; }
+  .texto-4 { grid-area: texto4; }
+
+  .img-2 {
+    grid-area: img2;
+    @include background-image('/images/quiz2.png');
+  }
+
+  .img-3 {
+    grid-area: img3;
+    @include background-image('/images/quiz3.png');
+  }
+}
+
+.contato {
+  max-width: 1200px;
+  position: relative;
+  margin: 0 auto;
+
+  .titulo {
+    text-align: center;
+    font: {
+      size: $font-size-titulo;
+      weight: 900;
+    }
+    color: $cor-terciaria;
+  }
+
+  .subtitulo {
+    text-align: center;
+    font: {
+      size: $font-size-subtitulo;
+      weight: 300;
+    }
+    color: $cor-secundaria;
+  }
+
+  .botao {
+    text-align: center;
+    margin-top: 2rem;
+
+    a {
+      text-decoration: none;
+      color: $cor-secundaria;
+      background-color: $cor-terciaria;
+      padding: 1rem 2rem;
+      border-radius: 10px;
+      font: {
+        size: $font-size-body;
+        weight: 600;
+      }
+      transition: all 0.3s ease;
+
+      &:hover {   
+        background-color: $cor-secundaria;
+        color: $cor-terciaria;
+      }
+    }
+  }
+}
+
+.rodape {
+  padding-top: 100px;
+  max-width: 1200px;
+  position: relative;
+  margin: 0 auto;
+
+  .titulo {
+    text-align: center;
+    font: {
+      size: $font-size-body;
+      weight: 900;
+    }
+    color: $cor-terciaria;
+  }
+}

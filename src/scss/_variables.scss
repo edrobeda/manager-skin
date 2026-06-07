@@ -1,0 +1,39 @@
+// Cores principais
+$cor-primaria: #83B026;     // Verde vibrante
+$cor-secundaria: #17202F;   // Azul escuro
+$cor-terciaria: #217475;    // Teal moderno
+
+// Neutros
+$branco: #ffffff;
+$preto: #000000;
+
+// Tipografia
+$fonte-principal: 'Arial', sans-serif;
+$fonte-destaque: 'Helvetica Neue', sans-serif;
+
+// Espaçamentos
+$espacamento-padrao: 1rem;
+$espacamento-grande: 2rem;
+
+// Bordas e sombras
+$borda-arredondada: 8px;
+$sombra-leve: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+// Definindo breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// Escala de fonte base
+$font-title-lg: 3rem;
+$font-title-md: 2.25rem;
+$font-title-sm: 1.75rem;
+
+$font-subtitle-lg: 2rem;
+$font-subtitle-md: 1.5rem;
+$font-subtitle-sm: 1.25rem;
+
+$font-body-lg: 1.125rem;
+$font-body-md: 1rem;
+$font-body-sm: 0.875rem;

@@ -1,0 +1,21 @@
+{
+  "name": "manager-skin",
+  "version": "1.0.0",
+  "description": "Frontend skin for EventifyLab Manager - EJS templates + Tailwind CSS",
+  "scripts": {
+    "build": "npx postcss src/scss/main.scss -o src/public/styles.css",
+    "watch": "npx sass src/scss/main.scss src/public/styles.css --watch",
+    "dev": "npm run watch & npm run build"
+  },
+  "keywords": [],
+  "author": "EventifyLab Team",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.4",
+    "postcss-cli": "^11.0.1",
+    "postcss-scss": "^4.0.9",
+    "sass": "^1.89.2",
+    "tailwindcss": "^4.1.8"
+  }
+}
