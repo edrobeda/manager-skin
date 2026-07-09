@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import Webs from './pages/Webs';
 import Tenants from './pages/Tenants';
 import Eventos from './pages/Eventos';
+import ProdutosTotem from './pages/ProdutosTotem';
+import ProdutoForm from './pages/ProdutosTotem/ProdutoForm';
 import { Backup, AddWeb, BasicAuth } from './pages/Configuracoes';
 import DashboardLayout from './layouts/DashboardLayout';
 import './App.css';
@@ -44,6 +46,9 @@ const ThemedApp = () => {
             <Route path="formularios" element={<div><h2>Formulários</h2><p>Em desenvolvimento...</p></div>} />
             <Route path="usuarios"   element={<div><h2>Usuários</h2><p>Em desenvolvimento...</p></div>} />
             <Route path="webs"       element={<Webs />} />
+            <Route path="produtos-totem" element={<ProdutosTotem />} />
+            <Route path="produtos-totem/novo" element={<ProdutoForm />} />
+            <Route path="produtos-totem/:id/editar" element={<ProdutoForm />} />
             <Route path="tenants"    element={<ProtectedRoute requireRole="superadmin"><Tenants /></ProtectedRoute>} />
             <Route path="configuracoes">
               <Route path="add-web"    element={<AddWeb />} />

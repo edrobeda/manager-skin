@@ -3,7 +3,7 @@ import { Layout, Menu, theme, Avatar, Dropdown, Button, Tag } from 'antd';
 import {
   DashboardOutlined, UserOutlined, SettingOutlined, TeamOutlined,
   CalendarOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
-  TrophyOutlined, FormOutlined, GlobalOutlined, BankOutlined, SafetyOutlined, KeyOutlined,
+  TrophyOutlined, FormOutlined, GlobalOutlined, BankOutlined, SafetyOutlined, KeyOutlined, ShopOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
@@ -35,6 +35,7 @@ const DashboardLayout = () => {
     { key: '/dashboard/formularios',icon: <FormOutlined />,      label: 'Formulários' },
     { key: '/dashboard/usuarios',   icon: <UserOutlined />,      label: 'Usuários' },
     ...(isAdmin ? [{ key: '/dashboard/webs', icon: <GlobalOutlined />, label: 'WEBs' }] : []),
+    ...(isAdmin ? [{ key: '/dashboard/produtos-totem', icon: <ShopOutlined />, label: 'Produtos Totem' }] : []),
     ...(isSuper ? [{ key: '/dashboard/tenants', icon: <BankOutlined />, label: 'Clientes' }] : []),
     ...(isAdmin ? [{
       key: '/dashboard/configuracoes',
