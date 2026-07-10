@@ -1,7 +1,49 @@
-import { useState, useEffect } from 'react';
-import { Card, Table, Button, Space, Modal, Form, Input, message, Tag, Popconfirm, Switch, Drawer, Badge } from 'antd';
-import { PlusOutlined, EditOutlined, TeamOutlined, StopOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { useState, useEffect, useRef } from 'react';
+import { Card, Table, Button, Space, Modal, Form, Input, message, Tag, Popconfirm, Drawer, Badge, DatePicker, Alert, Typography, Descriptions, Tooltip } from 'antd';
+import { PlusOutlined, EditOutlined, TeamOutlined, StopOutlined, CheckCircleOutlined, RocketOutlined, KeyOutlined, CopyOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 import { api } from '../../services/api';
+
+const { Text } = Typography;
+
+function AliasForm({ provForm, slug }) {
+  const [alias, setAlias] = useState('');
+  const defaultUrl = `game-${slug}.eventifylab.com`;
+  const aliasNorm = alias.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  const previewUrl = aliasNorm ? `${aliasNorm}.eventifylab.com` : defaultUrl;
+
+  return (
+    <Form form={provForm} layout="vertical" style={{ marginTop: 16 }}>
+      <Alert
+        type="info"
+        showIcon
+        style={{ marginBottom: 16 }}
+        message={`URL do game: ${previewUrl}`}
+        description="O processo leva ~3 minutos. Containers e SSL configurados automaticamente."
+      />
+      <Form.Item
+        name="alias"
+        label="Alias personalizado (opcional)"
+        extra={`Deixe em branco para usar o padrão: ${defaultUrl}`}
+        rules={[{ pattern: /^[a-z0-9-]*$/, message: 'Apenas letras minúsculas, números e -' }]}
+      >
+        <Input
+          placeholder={`ex: vetnil-biocell`}
+          addonAfter=".eventifylab.com"
+          onChange={e => setAlias(e.target.value)}
+        />
+      </Form.Item>
+      <Form.Item name="datas" label="Período do evento (opcional)" initialValue={[dayjs(), dayjs().add(30, 'day')]}>
+        <DatePicker.RangePicker
+          showTime={{ format: 'HH:mm' }}
+          format="DD/MM/YYYY HH:mm"
+          placeholder={['Início do evento', 'Fim do evento']}
+          style={{ width: '100%' }}
+        />
+      </Form.Item>
+    </Form>
+  );
+}
 
 const Tenants = () => {
   const [tenants, setTenants] = useState([]);
@@ -11,6 +53,17 @@ const Tenants = () => {
   const [form] = Form.useForm();
   const [userForm] = Form.useForm();
   const [userModal, setUserModal] = useState(false);
+
+  // credenciais
+  const [credsModal, setCredsModal] = useState({ open: false, tenant: null });
+
+  // provisionamento
+  const [provModal, setProvModal] = useState({ open: false, tenant: null });
+  const [provForm] = Form.useForm();
+  const [provStatus, setProvStatus] = useState(null); // null | 'rodando' | 'concluido' | 'erro'
+  const [provLog, setProvLog] = useState([]);
+  const logRef = useRef(null);
+  const pollRef = useRef(null);
 
   const load = async () => {
     setLoading(true);
@@ -24,6 +77,10 @@ const Tenants = () => {
   };
 
   useEffect(() => { load(); }, []);
+
+  useEffect(() => {
+    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
+  }, [provLog]);
 
   const openCreate = () => {
     form.resetFields();
@@ -99,6 +156,61 @@ const Tenants = () => {
     }
   };
 
+  // ─── Provisionamento ───────────────────────────────────────
+  const openProvisionar = (tenant) => {
+    clearInterval(pollRef.current);
+    setProvModal({ open: true, tenant });
+    setProvStatus(null);
+    setProvLog([]);
+    provForm.resetFields();
+  };
+
+  const startPolling = (tenantId) => {
+    pollRef.current = setInterval(async () => {
+      try {
+        const data = await api.get(`/tenants/${tenantId}/provisionar/status`);
+        setProvLog(data.log || []);
+        if (data.status !== 'rodando') {
+          setProvStatus(data.status);
+          clearInterval(pollRef.current);
+          if (data.status === 'concluido') {
+            message.success('Game provisionado com sucesso!');
+            load();
+          }
+        }
+      } catch {
+        // ignora erros de polling
+      }
+    }, 3000);
+  };
+
+  const handleProvisionar = async () => {
+    try {
+      const values = await provForm.validateFields();
+      const body = {};
+      if (values.datas?.[0]) body.data_inicio = values.datas[0].format('YYYY-MM-DD HH:mm:ss');
+      if (values.datas?.[1]) body.data_fim    = values.datas[1].format('YYYY-MM-DD HH:mm:ss');
+      if (values.alias?.trim()) body.alias = values.alias.trim();
+
+      setProvStatus('rodando');
+      setProvLog(['Iniciando provisionamento...']);
+
+      const resp = await api.post(`/tenants/${provModal.tenant.id}/provisionar`, body);
+      setProvModal(prev => ({ ...prev, gameUrl: resp.gameUrl || null, managerUrl: resp.managerUrl || null }));
+      startPolling(provModal.tenant.id);
+    } catch (err) {
+      setProvStatus('erro');
+      setProvLog([err.message]);
+    }
+  };
+
+  const closeProvModal = () => {
+    clearInterval(pollRef.current);
+    setProvModal({ open: false, tenant: null });
+    setProvStatus(null);
+    setProvLog([]);
+  };
+
   const columns = [
     {
       title: 'Status', dataIndex: 'ativo', key: 'ativo', width: 80,
@@ -117,11 +229,17 @@ const Tenants = () => {
     { title: 'URL', key: 'url', render: (_, r) => <a href={`https://${r.slug}.eventifylab.com`} target="_blank" rel="noreferrer">{r.slug}.eventifylab.com</a> },
     { title: 'Criado em', dataIndex: 'created_at', key: 'created_at', render: v => new Date(v).toLocaleDateString('pt-BR') },
     {
-      title: 'Ações', key: 'actions', width: 160,
+      title: 'Ações', key: 'actions', width: 230,
       render: (_, r) => (
         <Space>
           <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} />
           <Button size="small" icon={<TeamOutlined />} onClick={() => openUsers(r)} />
+          <Button size="small" type="primary" icon={<RocketOutlined />} onClick={() => openProvisionar(r)} title="Provisionar Game" />
+          {r.game_credentials && (
+            <Tooltip title="Credenciais de acesso">
+              <Button size="small" icon={<KeyOutlined />} onClick={() => setCredsModal({ open: true, tenant: r })} />
+            </Tooltip>
+          )}
           <Popconfirm
             title={r.ativo !== false ? 'Revogar acesso do tenant?' : 'Reativar acesso do tenant?'}
             onConfirm={() => toggleTenant(r)}
@@ -193,6 +311,130 @@ const Tenants = () => {
             <Input placeholder="#10b981" />
           </Form.Item>
         </Form>
+      </Modal>
+
+      {/* Modal provisionar game */}
+      <Modal
+        title={<Space><RocketOutlined style={{ color: '#1677ff' }} />Provisionar Game — {provModal.tenant?.nome}</Space>}
+        open={provModal.open}
+        onCancel={closeProvModal}
+        footer={provStatus === null ? [
+          <Button key="cancel" onClick={closeProvModal}>Cancelar</Button>,
+          <Button key="ok" type="primary" icon={<RocketOutlined />} onClick={handleProvisionar}>Provisionar</Button>,
+        ] : [
+          <Button key="close" onClick={closeProvModal} disabled={provStatus === 'rodando'}>
+            {provStatus === 'rodando' ? 'Aguarde...' : 'Fechar'}
+          </Button>,
+        ]}
+        width={600}
+      >
+        {provStatus === null && (
+          <AliasForm
+            provForm={provForm}
+            slug={provModal.tenant?.slug}
+          />
+        )}
+
+        {provStatus !== null && (
+          <div>
+            <div style={{ marginBottom: 12 }}>
+              {provStatus === 'rodando'   && <Badge status="processing" text={<Text strong style={{ color: '#1677ff' }}>Provisionando...</Text>} />}
+              {provStatus === 'concluido' && <Badge status="success"    text={<Text strong style={{ color: '#52c41a' }}>Concluído com sucesso!</Text>} />}
+              {provStatus === 'erro'      && <Badge status="error"      text={<Text strong style={{ color: '#ff4d4f' }}>Erro no provisionamento</Text>} />}
+            </div>
+            <div
+              ref={logRef}
+              style={{
+                background: '#111',
+                color: '#e0e0e0',
+                fontFamily: 'monospace',
+                fontSize: 12,
+                padding: '12px 16px',
+                borderRadius: 6,
+                height: 280,
+                overflowY: 'auto',
+                lineHeight: 1.6,
+              }}
+            >
+              {provLog.map((line, i) => (
+                <div key={i} style={{ color: line.startsWith('[ERR]') ? '#ff7875' : '#e0e0e0' }}>{line}</div>
+              ))}
+              {provStatus === 'rodando' && <div style={{ color: '#555' }}>▌</div>}
+            </div>
+            {provStatus === 'concluido' && (() => {
+              const gameUrl    = provModal.gameUrl    || `game-${provModal.tenant?.slug}.eventifylab.com`;
+              const managerUrl = provModal.managerUrl || gameUrl.replace('.eventifylab.com', '-manager.eventifylab.com');
+              return (
+                <Alert
+                  type="success"
+                  showIcon
+                  style={{ marginTop: 12 }}
+                  message="Game provisionado!"
+                  description={
+                    <Space direction="vertical" size={2}>
+                      <span>Jogo: <a href={`https://${gameUrl}`} target="_blank" rel="noreferrer">{gameUrl}</a></span>
+                      <span>Manager: <a href={`https://${managerUrl}`} target="_blank" rel="noreferrer">{managerUrl}</a></span>
+                    </Space>
+                  }
+                />
+              );
+            })()}
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal credenciais de acesso */}
+      <Modal
+        title={<Space><KeyOutlined style={{ color: '#faad14' }} />Credenciais — {credsModal.tenant?.nome}</Space>}
+        open={credsModal.open}
+        onCancel={() => setCredsModal({ open: false, tenant: null })}
+        footer={<Button onClick={() => setCredsModal({ open: false, tenant: null })}>Fechar</Button>}
+        width={520}
+      >
+        {credsModal.tenant?.game_credentials && (() => {
+          const c = typeof credsModal.tenant.game_credentials === 'string'
+            ? JSON.parse(credsModal.tenant.game_credentials)
+            : credsModal.tenant.game_credentials;
+
+          const copy = (val) => { navigator.clipboard.writeText(val); message.success('Copiado!'); };
+
+          const field = (label, value) => (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
+              <span style={{ color: '#888', fontSize: 12, minWidth: 110 }}>{label}</span>
+              <Space>
+                <Text code copyable={false} style={{ fontSize: 13 }}>{value}</Text>
+                <Button type="text" size="small" icon={<CopyOutlined />} onClick={() => copy(value)} />
+              </Space>
+            </div>
+          );
+
+          return (
+            <div style={{ marginTop: 8 }}>
+              <Alert
+                type="warning"
+                showIcon
+                message="Guarde estas credenciais — elas não podem ser recuperadas depois."
+                style={{ marginBottom: 16 }}
+              />
+              <div style={{ background: '#fafafa', borderRadius: 8, padding: '4px 16px', border: '1px solid #f0f0f0' }}>
+                <div style={{ padding: '8px 0', borderBottom: '1px solid #f0f0f0', fontWeight: 600, fontSize: 12, color: '#555', letterSpacing: 1 }}>JOGO</div>
+                {field('URL', `https://${c.url}/cadastro`)}
+                <div style={{ padding: '12px 0 8px', borderBottom: '1px solid #f0f0f0', fontWeight: 600, fontSize: 12, color: '#555', letterSpacing: 1 }}>MANAGER (Admin)</div>
+                {field('Usuário', c.manager_user || 'admin')}
+                {field('Senha', c.manager_pass)}
+                {field('URL', `https://${c.manager_url || c.url.replace('.eventifylab.com', '-manager.eventifylab.com')}`)}
+                <div style={{ padding: '12px 0 8px', fontWeight: 600, fontSize: 12, color: '#555', letterSpacing: 1 }}>ENTREGA</div>
+                {field('Senha', c.entrega_pass)}
+                {field('URL', `https://${c.url}/entrega`)}
+              </div>
+              {c.provisioned_at && (
+                <div style={{ marginTop: 8, color: '#aaa', fontSize: 11, textAlign: 'right' }}>
+                  Provisionado em {new Date(c.provisioned_at).toLocaleString('pt-BR')}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </Modal>
 
       {/* Drawer de usuários do tenant */}
