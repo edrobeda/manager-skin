@@ -4,7 +4,7 @@ import {
   DashboardOutlined, UserOutlined, SettingOutlined, TeamOutlined,
   CalendarOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
   TrophyOutlined, FormOutlined, GlobalOutlined, BankOutlined, SafetyOutlined, KeyOutlined,
-  CloudUploadOutlined,
+  CloudUploadOutlined, ShopOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
@@ -40,6 +40,7 @@ const DashboardLayout = () => {
     { key: '/dashboard/formularios', icon: <FormOutlined />,      label: 'Formulários' },
     { key: '/dashboard/usuarios',    icon: <UserOutlined />,      label: 'Usuários' },
     { key: '/dashboard/uploads',     icon: <CloudUploadOutlined />, label: 'Uploads' },
+    ...(isAdmin ? [{ key: '/dashboard/produtos-totem', icon: <ShopOutlined />, label: 'Produtos Totem' }] : []),
     ...(isAdmin ? [{
       key: '/dashboard/configuracoes',
       icon: <SettingOutlined />,
