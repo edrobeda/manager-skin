@@ -56,6 +56,15 @@ export default function ProdutosTotem() {
     }
   };
 
+  const handleToggleDestaque = async (record, destaque) => {
+    try {
+      const produto = await produtosTotemService.update(record.id, { destaque });
+      setProdutos(prev => prev.map(p => p.id === produto.id ? produto : p));
+    } catch (e) {
+      message.error(e.message);
+    }
+  };
+
   const columns = [
     {
       title: 'Imagem', dataIndex: 'imagem_produto_url', key: 'imagem', width: 80,
@@ -65,6 +74,10 @@ export default function ProdutosTotem() {
     },
     { title: 'Nome', dataIndex: 'nome', key: 'nome', render: (v) => <Text strong>{v}</Text> },
     { title: 'Linha', dataIndex: 'linha', key: 'linha', render: (v) => <Tag>{v}</Tag> },
+    {
+      title: 'Série', dataIndex: 'serie', key: 'serie',
+      render: (v) => v ? <Tag color="purple">{v}</Tag> : <Text type="secondary">—</Text>,
+    },
     { title: 'Slug', dataIndex: 'slug', key: 'slug', render: (v) => <Text code>{v}</Text> },
     {
       title: 'Evento vinculado', dataIndex: 'evento_id', key: 'evento_id',
@@ -81,6 +94,17 @@ export default function ProdutosTotem() {
       },
     },
     { title: 'Ordem', dataIndex: 'ordem', key: 'ordem', width: 80 },
+    {
+      title: 'Destaque', dataIndex: 'destaque', key: 'destaque', width: 100,
+      render: (destaque, record) => (
+        <Switch
+          checked={destaque}
+          checkedChildren="Carrossel"
+          unCheckedChildren="—"
+          onChange={(val) => handleToggleDestaque(record, val)}
+        />
+      ),
+    },
     {
       title: 'Status', dataIndex: 'ativo', key: 'ativo', width: 100,
       render: (ativo, record) => (

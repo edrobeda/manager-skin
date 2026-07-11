@@ -23,4 +23,15 @@ export const api = {
   put: (path, body) => fetch(`${BASE}${path}`, { method: 'PUT', headers: headers(), body: JSON.stringify(body) }).then(handle),
   patch: (path, body = {}) => fetch(`${BASE}${path}`, { method: 'PATCH', headers: headers(), body: JSON.stringify(body) }).then(handle),
   delete: (path) => fetch(`${BASE}${path}`, { method: 'DELETE', headers: headers() }).then(handle),
+  // multipart — sem Content-Type manual, o navegador define o boundary sozinho
+  upload: (path, file) => {
+    const form = new FormData();
+    form.append('file', file);
+    const token = getToken();
+    return fetch(`${BASE}${path}`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    }).then(handle);
+  },
 };

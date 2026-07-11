@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Button, Card, Input, Form, Select, Space, Tag, InputNumber, message,
+  Button, Card, Input, Form, Select, Space, Tag, InputNumber, Checkbox, message,
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { produtosTotemService } from '../../services/produtosTotemService';
 import { api } from '../../services/api';
 import RichTextEditor from '../../components/RichTextEditor';
+import ImageUpload from '../../components/ImageUpload/ImageUpload';
+import VideoUpload from '../../components/VideoUpload/VideoUpload';
 
 const STATUS_COLOR = { ativo: 'green', agendado: 'blue', expirando: 'orange', encerrado: 'default' };
 
@@ -99,17 +101,32 @@ export default function ProdutoForm() {
             <RichTextEditor />
           </Form.Item>
 
-          <Space.Compact block>
-            <Form.Item name="imagem_produto_url" label="URL imagem do produto" style={{ flex: 1 }}>
-              <Input placeholder="https://..." />
+          <Space size={32}>
+            <Form.Item name="imagem_produto_url" label="Imagem do produto">
+              <ImageUpload />
             </Form.Item>
-            <Form.Item name="imagem_banner_url" label="URL imagem do banner" style={{ flex: 1, marginLeft: 8 }}>
-              <Input placeholder="https://..." />
+            <Form.Item name="imagem_banner_url" label="Imagem do banner">
+              <ImageUpload />
             </Form.Item>
-          </Space.Compact>
+          </Space>
 
           <Form.Item name="video_url" label="URL do vídeo (YouTube, opcional)">
             <Input placeholder="https://youtube.com/..." />
+          </Form.Item>
+
+          <Form.Item
+            name="video_local_url"
+            label="Vídeo local (backup, tocado direto no totem sem depender do YouTube)"
+          >
+            <VideoUpload />
+          </Form.Item>
+
+          <Form.Item name="url_ficha" label="URL da ficha completa (QR code no totem, opcional)">
+            <Input placeholder="https://vetnil.com.br/produto/..." />
+          </Form.Item>
+
+          <Form.Item name="serie" label="Série (agrupamento no totem, opcional)">
+            <Input placeholder="Ex: Lançamento Vetnil 2026" />
           </Form.Item>
 
           <Space.Compact block>
@@ -132,6 +149,10 @@ export default function ProdutoForm() {
               <InputNumber min={0} style={{ width: '100%' }} />
             </Form.Item>
           </Space.Compact>
+
+          <Form.Item name="destaque" valuePropName="checked" initialValue={false}>
+            <Checkbox>Destaque no carrossel do totem</Checkbox>
+          </Form.Item>
 
           <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} loading={saving}>
             Salvar
