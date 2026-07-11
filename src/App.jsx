@@ -7,6 +7,8 @@ import Dashboard from './pages/Dashboard';
 import Webs from './pages/Webs';
 import Tenants from './pages/Tenants';
 import Eventos from './pages/Eventos';
+import Leads from './pages/Leads';
+import Uploads from './pages/Uploads';
 import ProdutosTotem from './pages/ProdutosTotem';
 import ProdutoForm from './pages/ProdutosTotem/ProdutoForm';
 import { Backup, AddWeb, BasicAuth } from './pages/Configuracoes';
@@ -41,11 +43,12 @@ const ThemedApp = () => {
           >
             <Route index element={<Dashboard />} />
             <Route path="eventos"    element={<Eventos />} />
-            <Route path="leads"      element={<div><h2>Leads</h2><p>Em desenvolvimento...</p></div>} />
+            <Route path="leads"      element={<Leads />} />
             <Route path="sorteios"   element={<div><h2>Sorteios</h2><p>Em desenvolvimento...</p></div>} />
             <Route path="formularios" element={<div><h2>Formulários</h2><p>Em desenvolvimento...</p></div>} />
             <Route path="usuarios"   element={<div><h2>Usuários</h2><p>Em desenvolvimento...</p></div>} />
             <Route path="webs"       element={<Webs />} />
+            <Route path="uploads"    element={<Uploads />} />
             <Route path="produtos-totem" element={<ProdutosTotem />} />
             <Route path="produtos-totem/novo" element={<ProdutoForm />} />
             <Route path="produtos-totem/:id/editar" element={<ProdutoForm />} />

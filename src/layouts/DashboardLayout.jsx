@@ -3,7 +3,8 @@ import { Layout, Menu, theme, Avatar, Dropdown, Button, Tag } from 'antd';
 import {
   DashboardOutlined, UserOutlined, SettingOutlined, TeamOutlined,
   CalendarOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
-  TrophyOutlined, FormOutlined, GlobalOutlined, BankOutlined, SafetyOutlined, KeyOutlined, ShopOutlined,
+  TrophyOutlined, FormOutlined, GlobalOutlined, BankOutlined, SafetyOutlined, KeyOutlined,
+  CloudUploadOutlined, ShopOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
@@ -25,23 +26,27 @@ const DashboardLayout = () => {
   };
 
   const getSelectedKeys = () => [location.pathname];
-  const getOpenKeys = () => location.pathname.startsWith('/dashboard/configuracoes/') ? ['/dashboard/configuracoes'] : [];
+  const getOpenKeys = () =>
+    location.pathname.startsWith('/dashboard/configuracoes/') || location.pathname === '/dashboard/webs'
+      ? ['/dashboard/configuracoes']
+      : [];
 
   const menuItems = [
-    { key: '/dashboard',            icon: <DashboardOutlined />, label: 'Dashboard' },
-    { key: '/dashboard/eventos',    icon: <CalendarOutlined />,  label: 'Eventos' },
-    { key: '/dashboard/leads',      icon: <TeamOutlined />,      label: 'Leads' },
-    { key: '/dashboard/sorteios',   icon: <TrophyOutlined />,    label: 'Sorteios' },
-    { key: '/dashboard/formularios',icon: <FormOutlined />,      label: 'Formulários' },
-    { key: '/dashboard/usuarios',   icon: <UserOutlined />,      label: 'Usuários' },
-    ...(isAdmin ? [{ key: '/dashboard/webs', icon: <GlobalOutlined />, label: 'WEBs' }] : []),
-    ...(isAdmin ? [{ key: '/dashboard/produtos-totem', icon: <ShopOutlined />, label: 'Produtos Totem' }] : []),
+    { key: '/dashboard',             icon: <DashboardOutlined />, label: 'Dashboard' },
     ...(isSuper ? [{ key: '/dashboard/tenants', icon: <BankOutlined />, label: 'Clientes' }] : []),
+    { key: '/dashboard/eventos',      icon: <CalendarOutlined />,  label: 'Eventos' },
+    { key: '/dashboard/leads',       icon: <TeamOutlined />,      label: 'Leads' },
+    { key: '/dashboard/sorteios',    icon: <TrophyOutlined />,    label: 'Sorteios' },
+    { key: '/dashboard/formularios', icon: <FormOutlined />,      label: 'Formulários' },
+    { key: '/dashboard/usuarios',    icon: <UserOutlined />,      label: 'Usuários' },
+    { key: '/dashboard/uploads',     icon: <CloudUploadOutlined />, label: 'Uploads' },
+    ...(isAdmin ? [{ key: '/dashboard/produtos-totem', icon: <ShopOutlined />, label: 'Produtos Totem' }] : []),
     ...(isAdmin ? [{
       key: '/dashboard/configuracoes',
       icon: <SettingOutlined />,
       label: 'Configurações',
       children: [
+        { key: '/dashboard/webs',                     icon: <GlobalOutlined />, label: 'WEBs' },
         { key: '/dashboard/configuracoes/add-web',    label: 'Add Web' },
         { key: '/dashboard/configuracoes/backup',     icon: <SafetyOutlined />, label: 'Backup' },
         ...(isSuper ? [{ key: '/dashboard/configuracoes/basic-auth', icon: <KeyOutlined />, label: 'Chaves de API' }] : []),
