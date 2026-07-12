@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Table, Button, Switch, Popconfirm, Tag, Typography, Space, message, Image,
+  Table, Button, Switch, Popconfirm, Tag, Typography, Space, message, Image, Input,
 } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, EditOutlined, SearchOutlined } from '@ant-design/icons';
 import { produtosTotemService } from '../../services/produtosTotemService';
 import { api } from '../../services/api';
 
@@ -15,6 +15,7 @@ export default function ProdutosTotem() {
   const [produtos, setProdutos] = useState([]);
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [busca, setBusca] = useState('');
   const navigate = useNavigate();
 
   const load = async () => {
@@ -36,6 +37,13 @@ export default function ProdutosTotem() {
   useEffect(() => { load(); }, []);
 
   const eventoMap = Object.fromEntries(eventos.map(e => [e.id, e]));
+
+  const produtosFiltrados = useMemo(() => {
+    const termo = busca.trim().toLowerCase();
+    if (!termo) return produtos;
+    return produtos.filter(p => [p.nome, p.linha, p.serie, p.slug]
+      .some(campo => campo?.toLowerCase().includes(termo)));
+  }, [produtos, busca]);
 
   const handleDelete = async (id) => {
     try {
@@ -72,11 +80,18 @@ export default function ProdutosTotem() {
         ? <Image src={url} width={48} height={48} style={{ objectFit: 'cover', borderRadius: 4 }} />
         : <Text type="secondary">—</Text>,
     },
-    { title: 'Nome', dataIndex: 'nome', key: 'nome', render: (v) => <Text strong>{v}</Text> },
-    { title: 'Linha', dataIndex: 'linha', key: 'linha', render: (v) => <Tag>{v}</Tag> },
+    {
+      title: 'Nome', dataIndex: 'nome', key: 'nome', render: (v) => <Text strong>{v}</Text>,
+      sorter: (a, b) => a.nome.localeCompare(b.nome),
+    },
+    {
+      title: 'Linha', dataIndex: 'linha', key: 'linha', render: (v) => <Tag>{v}</Tag>,
+      sorter: (a, b) => (a.linha ?? '').localeCompare(b.linha ?? ''),
+    },
     {
       title: 'Série', dataIndex: 'serie', key: 'serie',
       render: (v) => v ? <Tag color="purple">{v}</Tag> : <Text type="secondary">—</Text>,
+      sorter: (a, b) => (a.serie ?? '').localeCompare(b.serie ?? ''),
     },
     { title: 'Slug', dataIndex: 'slug', key: 'slug', render: (v) => <Text code>{v}</Text> },
     {
@@ -93,7 +108,10 @@ export default function ProdutosTotem() {
         );
       },
     },
-    { title: 'Ordem', dataIndex: 'ordem', key: 'ordem', width: 80 },
+    {
+      title: 'Ordem', dataIndex: 'ordem', key: 'ordem', width: 80,
+      sorter: (a, b) => (a.ordem ?? 0) - (b.ordem ?? 0),
+    },
     {
       title: 'Destaque', dataIndex: 'destaque', key: 'destaque', width: 100,
       render: (destaque, record) => (
@@ -138,16 +156,26 @@ export default function ProdutosTotem() {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 16 }}>
         <h2 style={{ margin: 0 }}>Produtos do Totem</h2>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/dashboard/produtos-totem/novo')}>
-          Novo produto
-        </Button>
+        <Space>
+          <Input
+            placeholder="Buscar por nome, linha, série ou slug"
+            prefix={<SearchOutlined />}
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            allowClear
+            style={{ width: 280 }}
+          />
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => navigate('/dashboard/produtos-totem/novo')}>
+            Novo produto
+          </Button>
+        </Space>
       </div>
 
       <Table
         rowKey="id"
-        dataSource={produtos}
+        dataSource={produtosFiltrados}
         columns={columns}
         loading={loading}
         pagination={false}
