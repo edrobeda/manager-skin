@@ -6,6 +6,7 @@ import {
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { produtosTotemService } from '../../services/produtosTotemService';
 import { api } from '../../services/api';
+import { useTenant } from '../../contexts/TenantContext';
 import RichTextEditor from '../../components/RichTextEditor';
 import ImageUpload from '../../components/ImageUpload/ImageUpload';
 import VideoUpload from '../../components/VideoUpload/VideoUpload';
@@ -17,7 +18,9 @@ export default function ProdutoForm() {
   const editing = !!id;
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const { isSuper } = useTenant();
   const [eventos, setEventos] = useState([]);
+  const [tenants, setTenants] = useState([]);
   const [produto, setProduto] = useState(null);
   const [loading, setLoading] = useState(editing);
   const [saving, setSaving] = useState(false);
@@ -27,6 +30,11 @@ export default function ProdutoForm() {
       try {
         const eventosData = await api.get('/eventos');
         setEventos(eventosData.eventos ?? []);
+
+        if (isSuper) {
+          const tenantsData = await api.get('/tenants');
+          setTenants(tenantsData.tenants ?? []);
+        }
 
         if (editing) {
           const data = await produtosTotemService.getById(id);
@@ -72,6 +80,19 @@ export default function ProdutoForm() {
 
       <Card loading={loading}>
         <Form form={form} layout="vertical">
+          {isSuper && (
+            <Form.Item
+              name="tenant_id" label="Tenant"
+              rules={[{ required: true, message: 'Selecione o tenant' }]}
+            >
+              <Select
+                disabled={editing}
+                placeholder="Selecione o tenant"
+                options={tenants.map(t => ({ value: t.id, label: t.nome }))}
+              />
+            </Form.Item>
+          )}
+
           <Space.Compact block>
             <Form.Item
               name="linha" label="Linha (categoria)" style={{ flex: 1 }}
