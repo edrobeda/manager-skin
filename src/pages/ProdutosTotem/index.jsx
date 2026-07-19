@@ -156,9 +156,9 @@ export default function ProdutosTotem() {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, gap: 16, flexWrap: 'wrap' }}>
         <h2 style={{ margin: 0 }}>Produtos do Totem</h2>
-        <Space>
+        <Space wrap>
           <Input
             placeholder="Buscar por nome, linha, série ou slug"
             prefix={<SearchOutlined />}
@@ -180,6 +180,7 @@ export default function ProdutosTotem() {
         loading={loading}
         pagination={false}
         locale={{ emptyText: 'Nenhum produto cadastrado' }}
+        scroll={{ x: 'max-content' }}
       />
     </>
   );

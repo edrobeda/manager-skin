@@ -166,7 +166,7 @@ export default function BasicAuth() {
 
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <div>
           <h2 style={{ margin: 0 }}>Chaves de API (Basic Auth)</h2>
           <Text type="secondary">
@@ -185,6 +185,7 @@ export default function BasicAuth() {
         loading={loading}
         pagination={false}
         locale={{ emptyText: 'Nenhuma chave criada' }}
+        scroll={{ x: 'max-content' }}
       />
 
       {/* Modal criar chave */}

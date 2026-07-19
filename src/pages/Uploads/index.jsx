@@ -180,6 +180,7 @@ const Uploads = () => {
           pagination={{ pageSize: 10 }}
           locale={{ emptyText: 'Nenhum arquivo enviado ainda.' }}
           size="middle"
+          scroll={{ x: 'max-content' }}
         />
       </Card>
     </div>

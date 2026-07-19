@@ -167,7 +167,7 @@ const Webs = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <h2 style={{ margin: 0 }}>Minhas Páginas Web</h2>
         <Button
           type="primary"
@@ -207,6 +207,7 @@ const Webs = () => {
               emptyText: 'Nenhuma página encontrada',
             }}
             size="middle"
+            scroll={{ x: 'max-content' }}
           />
         </Card>
       )}

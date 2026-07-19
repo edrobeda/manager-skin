@@ -109,9 +109,9 @@ const Leads = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
         <h2 style={{ margin: 0 }}>Leads</h2>
-        <Space>
+        <Space wrap>
           <Button icon={<ReloadOutlined />} onClick={loadLeads} loading={loading}>Atualizar</Button>
           <Button type="primary" icon={<DownloadOutlined />} onClick={exportCSV}>Exportar CSV</Button>
         </Space>
