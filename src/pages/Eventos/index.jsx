@@ -139,7 +139,7 @@ export default function Eventos() {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
         <Title level={4} style={{ margin: 0 }}>Eventos</Title>
         {canEdit && (
           <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
@@ -155,6 +155,7 @@ export default function Eventos() {
         loading={loading}
         pagination={{ pageSize: 10 }}
         rowClassName={(r) => r.status === 'encerrado' ? 'row-encerrado' : ''}
+        scroll={{ x: 'max-content' }}
       />
 
       <Modal

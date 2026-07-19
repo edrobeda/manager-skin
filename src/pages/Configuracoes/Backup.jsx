@@ -214,6 +214,7 @@ const Backup = () => {
             emptyText: 'Nenhum backup encontrado. Clique em "Criar Backup" para começar.'
           }}
           size="middle"
+          scroll={{ x: 'max-content' }}
         />
       </Card>
     </div>

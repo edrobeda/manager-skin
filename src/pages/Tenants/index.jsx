@@ -285,7 +285,7 @@ const Tenants = () => {
         extra={<Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>Novo Cliente</Button>}
         style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }}
       >
-        <Table columns={columns} dataSource={tenants} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} />
+        <Table columns={columns} dataSource={tenants} rowKey="id" loading={loading} pagination={{ pageSize: 10 }} scroll={{ x: 'max-content' }} />
       </Card>
 
       {/* Modal criar/editar tenant */}
@@ -442,7 +442,7 @@ const Tenants = () => {
         title={`Usuários — ${usersDrawer.tenant?.nome || ''}`}
         open={usersDrawer.open}
         onClose={() => setUsersDrawer({ open: false, tenant: null, users: [], loadingUsers: false })}
-        width={600}
+        width="min(600px, 100vw)"
         extra={<Button type="primary" size="small" icon={<PlusOutlined />} onClick={() => { userForm.resetFields(); setUserModal(true); }}>Novo Usuário</Button>}
       >
         <Table
@@ -452,6 +452,7 @@ const Tenants = () => {
           loading={usersDrawer.loadingUsers}
           pagination={false}
           size="small"
+          scroll={{ x: 'max-content' }}
         />
       </Drawer>
 

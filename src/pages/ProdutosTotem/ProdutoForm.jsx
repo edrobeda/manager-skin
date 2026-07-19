@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Button, Card, Input, Form, Select, Space, Tag, InputNumber, Checkbox, message,
+  Button, Card, Input, Form, Select, Space, Tag, InputNumber, Checkbox, message, Row, Col,
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { produtosTotemService } from '../../services/produtosTotemService';
@@ -93,20 +93,24 @@ export default function ProdutoForm() {
             </Form.Item>
           )}
 
-          <Space.Compact block>
-            <Form.Item
-              name="linha" label="Linha (categoria)" style={{ flex: 1 }}
-              rules={[{ required: true, message: 'Informe a linha do produto' }]}
-            >
-              <Input placeholder="Ex: Caninos" />
-            </Form.Item>
-            <Form.Item
-              name="nome" label="Nome do produto" style={{ flex: 1, marginLeft: 8 }}
-              rules={[{ required: true, message: 'Informe o nome do produto' }]}
-            >
-              <Input placeholder="Ex: ProbioUp" />
-            </Form.Item>
-          </Space.Compact>
+          <Row gutter={16}>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="linha" label="Linha (categoria)"
+                rules={[{ required: true, message: 'Informe a linha do produto' }]}
+              >
+                <Input placeholder="Ex: Caninos" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12}>
+              <Form.Item
+                name="nome" label="Nome do produto"
+                rules={[{ required: true, message: 'Informe o nome do produto' }]}
+              >
+                <Input placeholder="Ex: ProbioUp" />
+              </Form.Item>
+            </Col>
+          </Row>
 
           {editing && (
             <Form.Item label="Slug (gerado automaticamente)">
@@ -122,7 +126,7 @@ export default function ProdutoForm() {
             <RichTextEditor />
           </Form.Item>
 
-          <Space size={32}>
+          <Space size={32} wrap>
             <Form.Item name="imagem_produto_url" label="Imagem do produto">
               <ImageUpload />
             </Form.Item>
@@ -150,26 +154,30 @@ export default function ProdutoForm() {
             <Input placeholder="Ex: Lançamento Vetnil 2026" />
           </Form.Item>
 
-          <Space.Compact block>
-            <Form.Item name="evento_id" label="Evento vinculado (opcional)" style={{ flex: 1 }}>
-              <Select
-                allowClear
-                placeholder="Sem vínculo (visível em qualquer evento do tenant)"
-                options={eventos.map(e => ({
-                  value: e.id,
-                  label: (
-                    <Space>
-                      <Tag color={STATUS_COLOR[e.status] ?? 'default'}>{e.status}</Tag>
-                      {e.nome}
-                    </Space>
-                  ),
-                }))}
-              />
-            </Form.Item>
-            <Form.Item name="ordem" label="Ordem de exibição" initialValue={0} style={{ width: 160, marginLeft: 8 }}>
-              <InputNumber min={0} style={{ width: '100%' }} />
-            </Form.Item>
-          </Space.Compact>
+          <Row gutter={16}>
+            <Col xs={24} sm={16}>
+              <Form.Item name="evento_id" label="Evento vinculado (opcional)">
+                <Select
+                  allowClear
+                  placeholder="Sem vínculo (visível em qualquer evento do tenant)"
+                  options={eventos.map(e => ({
+                    value: e.id,
+                    label: (
+                      <Space>
+                        <Tag color={STATUS_COLOR[e.status] ?? 'default'}>{e.status}</Tag>
+                        {e.nome}
+                      </Space>
+                    ),
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={8}>
+              <Form.Item name="ordem" label="Ordem de exibição" initialValue={0}>
+                <InputNumber min={0} style={{ width: '100%' }} />
+              </Form.Item>
+            </Col>
+          </Row>
 
           <Form.Item name="destaque" valuePropName="checked" initialValue={false}>
             <Checkbox>Destaque no carrossel do totem</Checkbox>

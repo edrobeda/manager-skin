@@ -99,7 +99,7 @@ const Dashboard = () => {
 
       <Card title="Partidas Recentes" style={{ marginTop: 24, boxShadow: '0 1px 4px rgba(0,0,0,0.08)' }} bordered={false}>
         <Table columns={columns} dataSource={recentes} rowKey="id" pagination={false} size="middle" loading={loading}
-          locale={{ emptyText: 'Nenhuma partida registrada ainda.' }} />
+          locale={{ emptyText: 'Nenhuma partida registrada ainda.' }} scroll={{ x: 'max-content' }} />
       </Card>
     </div>
   );
