@@ -175,6 +175,12 @@ export default function ProdutoForm() {
             <Checkbox>Destaque no carrossel do totem</Checkbox>
           </Form.Item>
 
+          <Form.Item name="banner_institucional" valuePropName="checked" initialValue={false}>
+            <Checkbox>
+              Banner institucional (aparece só no carrossel, mesmo com o produto inativo — use pra banners sem produto de verdade por trás)
+            </Checkbox>
+          </Form.Item>
+
           <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} loading={saving}>
             Salvar
           </Button>
