@@ -152,13 +152,13 @@ const Uploads = () => {
           showUploadList={false}
           disabled={uploading}
           beforeUpload={handleUpload}
-          accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.pdf,.doc,.docx,.xml,.xls,.xlsx"
+          accept=".png,.jpg,.jpeg,.gif,.webp,.svg,.pdf,.doc,.docx,.xml,.xls,.xlsx,.mp4,.webm,.mov"
         >
           <p className="ant-upload-drag-icon">
             <InboxOutlined />
           </p>
           <p className="ant-upload-text">Clique ou arraste um arquivo para enviar</p>
-          <p className="ant-upload-hint">Imagens, PDF, Word, Excel, XML · Máx 30 MB</p>
+          <p className="ant-upload-hint">Imagens, PDF, Word, Excel, XML, vídeo (MP4/WEBM/MOV) · Máx 250 MB</p>
         </Dragger>
       </Card>
 
