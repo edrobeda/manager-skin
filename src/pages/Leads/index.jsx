@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, Table, Button, Input, Select, Space, Tag, Badge, Tooltip, Statistic, Row, Col, message } from 'antd';
-import { SearchOutlined, DownloadOutlined, ReloadOutlined, TeamOutlined } from '@ant-design/icons';
+import { SearchOutlined, DownloadOutlined, ReloadOutlined, TeamOutlined, SettingOutlined } from '@ant-design/icons';
 import { api } from '../../services/api';
 import { useTenant } from '../../contexts/TenantContext';
+import ExportModal from './ExportModal';
 
 const { Option } = Select;
 
@@ -16,6 +17,7 @@ const Leads = () => {
   const [loading, setLoading] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState('todos');
   const [search, setSearch] = useState('');
+  const [exportModalOpen, setExportModalOpen] = useState(false);
 
   const loadGrupos = async () => {
     try {
@@ -56,12 +58,12 @@ const Leads = () => {
     );
   }, [leads, search]);
 
+  const tenantLabel = selectedTenant === 'todos'
+    ? 'todos'
+    : grupos.find(g => String(g.id) === selectedTenant)?.slug || selectedTenant;
+
   const exportCSV = () => {
     if (!filtered.length) return message.warning('Nenhum dado para exportar');
-
-    const tenantLabel = selectedTenant === 'todos'
-      ? 'todos'
-      : grupos.find(g => String(g.id) === selectedTenant)?.slug || selectedTenant;
 
     const headers = ['Nome', 'CPF', 'Email', 'Telefone', 'Perfil', 'Tenant', 'Cadastrado em'];
     const rows = filtered.map(l => [
@@ -113,7 +115,8 @@ const Leads = () => {
         <h2 style={{ margin: 0 }}>Leads</h2>
         <Space wrap>
           <Button icon={<ReloadOutlined />} onClick={loadLeads} loading={loading}>Atualizar</Button>
-          <Button type="primary" icon={<DownloadOutlined />} onClick={exportCSV}>Exportar CSV</Button>
+          <Button icon={<DownloadOutlined />} onClick={exportCSV}>Exportar CSV</Button>
+          <Button type="primary" icon={<SettingOutlined />} onClick={() => setExportModalOpen(true)}>Exportar avançado</Button>
         </Space>
       </div>
 
@@ -208,6 +211,14 @@ const Leads = () => {
           scroll={{ x: 800 }}
         />
       </Card>
+
+      <ExportModal
+        open={exportModalOpen}
+        onClose={() => setExportModalOpen(false)}
+        tenantId={selectedTenant !== 'todos' ? selectedTenant : null}
+        search={search}
+        filenamePrefix={`leads-${tenantLabel}`}
+      />
     </div>
   );
 };
