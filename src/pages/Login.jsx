@@ -32,6 +32,9 @@ const Login = () => {
         user: data.user,
         tenant: data.tenant,
       }));
+      // Cookie cross-subdomain para o Caddy `forward_auth` liberar subdomínios internos (ex.: opencode.eventifylab.com)
+      const isHttps = window.location.protocol === 'https:';
+      document.cookie = `manager_token=${encodeURIComponent(data.token)}; path=/; max-age=28800${isHttps ? '; Secure' : ''}; SameSite=Lax; domain=.eventifylab.com`;
       message.success('Login realizado com sucesso!');
       navigate('/dashboard');
     } catch (err) {
