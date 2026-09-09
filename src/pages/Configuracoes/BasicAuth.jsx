@@ -87,6 +87,25 @@ export default function BasicAuth() {
 
   const handleSaveVinculo = async () => {
     const { evento_id } = vinculoForm.getFieldsValue();
+
+    // Desvincular derruba a chave em produção (ela para de autenticar) — pede confirmação
+    // explícita em vez de deixar o "x" do Select limpar o campo e salvar sem querer.
+    if (vinculoModal.evento_id && !evento_id) {
+      Modal.confirm({
+        title: 'Remover vínculo de evento?',
+        content: 'Esta chave vai parar de funcionar (autenticação passa a falhar) até ser vinculada a um evento de novo.',
+        okText: 'Remover vínculo',
+        okButtonProps: { danger: true },
+        cancelText: 'Cancelar',
+        onOk: () => salvarVinculo(evento_id),
+      });
+      return;
+    }
+
+    salvarVinculo(evento_id);
+  };
+
+  const salvarVinculo = async (evento_id) => {
     setSavingVinculo(true);
     try {
       await api.patch(`/basic-auth/${vinculoModal.id}`, { evento_id: evento_id ?? null });
