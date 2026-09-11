@@ -4,7 +4,7 @@ import {
   DashboardOutlined, UserOutlined, SettingOutlined, TeamOutlined,
   CalendarOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
   TrophyOutlined, FormOutlined, GlobalOutlined, BankOutlined, SafetyOutlined, KeyOutlined,
-  CloudUploadOutlined, ShopOutlined, CodeOutlined,
+  CloudUploadOutlined, ShopOutlined, CodeOutlined, AppstoreOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
@@ -47,6 +47,7 @@ const DashboardLayout = () => {
     { key: '/dashboard/usuarios',    icon: <UserOutlined />,      label: 'Usuários' },
     { key: '/dashboard/uploads',     icon: <CloudUploadOutlined />, label: 'Uploads' },
     ...(isAdmin ? [{ key: '/dashboard/produtos-totem', icon: <ShopOutlined />, label: 'Produtos Totem' }] : []),
+    ...(isAdmin ? [{ key: '/dashboard/series-totem', icon: <AppstoreOutlined />, label: 'Séries Totem' }] : []),
     ...(isSuper ? [{ key: 'ext:opencode', icon: <CodeOutlined />, label: 'OpenCode' }] : []),
     ...(isAdmin ? [{
       key: '/dashboard/configuracoes',
