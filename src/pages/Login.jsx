@@ -15,6 +15,9 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const slug = getSlugFromHost();
+  // SSO: se veio de um subdomínio interno via Caddy forward_auth (ex: ?redirect=https://opencode.eventifylab.com/),
+  // após o login redireciona de volta pra lá (top-level navigation envia o cookie SameSite=Lax).
+  const redirect = new URLSearchParams(window.location.search).get('redirect');
 
   const onFinish = async ({ email, password }) => {
     setLoading(true);
@@ -32,8 +35,17 @@ const Login = () => {
         user: data.user,
         tenant: data.tenant,
       }));
+      // Cookie cross-subdomain para o Caddy `forward_auth` liberar subdomínios internos (ex.: opencode.eventifylab.com)
+      const isHttps = window.location.protocol === 'https:';
+      document.cookie = `manager_token=${encodeURIComponent(data.token)}; path=/; max-age=28800${isHttps ? '; Secure' : ''}; SameSite=Lax; domain=.eventifylab.com`;
       message.success('Login realizado com sucesso!');
-      navigate('/dashboard');
+      // Redireciona de volta ao destino original (SSO) ou pro dashboard.
+      // Usa window.location p/ navegação cross-origin (o cookie Lax é enviado em top-level GET).
+      if (redirect && /^https:\/\/[a-z0-9.-]+\.eventifylab\.com(\/|$|\?)/i.test(redirect)) {
+        window.location.href = redirect;
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       message.error(err.message);
     } finally {

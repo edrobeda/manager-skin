@@ -4,7 +4,7 @@ import {
   DashboardOutlined, UserOutlined, SettingOutlined, TeamOutlined,
   CalendarOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
   TrophyOutlined, FormOutlined, GlobalOutlined, BankOutlined, SafetyOutlined, KeyOutlined,
-  CloudUploadOutlined, ShopOutlined,
+  CloudUploadOutlined, ShopOutlined, CodeOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
@@ -26,6 +26,8 @@ const DashboardLayout = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('session');
+    const isHttps = window.location.protocol === 'https:';
+    document.cookie = `manager_token=; path=/; max-age=0${isHttps ? '; Secure' : ''}; SameSite=Lax; domain=.eventifylab.com`;
     navigate('/login');
   };
 
@@ -45,6 +47,7 @@ const DashboardLayout = () => {
     { key: '/dashboard/usuarios',    icon: <UserOutlined />,      label: 'Usuários' },
     { key: '/dashboard/uploads',     icon: <CloudUploadOutlined />, label: 'Uploads' },
     ...(isAdmin ? [{ key: '/dashboard/produtos-totem', icon: <ShopOutlined />, label: 'Produtos Totem' }] : []),
+    ...(isSuper ? [{ key: 'ext:opencode', icon: <CodeOutlined />, label: 'OpenCode' }] : []),
     ...(isAdmin ? [{
       key: '/dashboard/configuracoes',
       icon: <SettingOutlined />,
@@ -72,7 +75,14 @@ const DashboardLayout = () => {
       selectedKeys={getSelectedKeys()}
       defaultOpenKeys={getOpenKeys()}
       items={menuItems}
-      onClick={({ key }) => { navigate(key); setMobileMenuOpen(false); }}
+      onClick={({ key }) => {
+        if (key.startsWith('ext:')) {
+          window.open(`https://${key.slice(4)}.eventifylab.com`, '_blank', 'noopener');
+        } else {
+          navigate(key);
+        }
+        setMobileMenuOpen(false);
+      }}
     />
   );
 
