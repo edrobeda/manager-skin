@@ -5,6 +5,7 @@ import {
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { produtosTotemService } from '../../services/produtosTotemService';
+import { seriesTotemService } from '../../services/seriesTotemService';
 import { api } from '../../services/api';
 import { useTenant } from '../../contexts/TenantContext';
 import RichTextEditor from '../../components/RichTextEditor';
@@ -20,6 +21,7 @@ export default function ProdutoForm() {
   const [form] = Form.useForm();
   const { isSuper } = useTenant();
   const [eventos, setEventos] = useState([]);
+  const [series, setSeries] = useState([]);
   const [tenants, setTenants] = useState([]);
   const [produto, setProduto] = useState(null);
   const [loading, setLoading] = useState(editing);
@@ -28,8 +30,12 @@ export default function ProdutoForm() {
   useEffect(() => {
     const load = async () => {
       try {
-        const eventosData = await api.get('/eventos');
+        const [eventosData, seriesData] = await Promise.all([
+          api.get('/eventos'),
+          seriesTotemService.getAll(),
+        ]);
         setEventos(eventosData.eventos ?? []);
+        setSeries((seriesData ?? []).filter(s => s.ativo));
 
         if (isSuper) {
           const tenantsData = await api.get('/tenants');
@@ -150,8 +156,12 @@ export default function ProdutoForm() {
             <Input placeholder="https://vetnil.com.br/produto/..." />
           </Form.Item>
 
-          <Form.Item name="serie" label="Série (agrupamento no totem, opcional)">
-            <Input placeholder="Ex: Lançamento Vetnil 2026" />
+          <Form.Item name="serie_id" label="Série (seção do totem, opcional)">
+            <Select
+              allowClear
+              placeholder="Sem série (aparece por último no totem)"
+              options={series.map(s => ({ value: s.id, label: s.nome }))}
+            />
           </Form.Item>
 
           <Row gutter={16}>

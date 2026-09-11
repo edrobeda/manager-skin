@@ -11,6 +11,7 @@ import Leads from './pages/Leads';
 import Uploads from './pages/Uploads';
 import ProdutosTotem from './pages/ProdutosTotem';
 import ProdutoForm from './pages/ProdutosTotem/ProdutoForm';
+import SeriesTotem from './pages/SeriesTotem';
 import { Backup, AddWeb, BasicAuth } from './pages/Configuracoes';
 import DashboardLayout from './layouts/DashboardLayout';
 import './App.css';
@@ -52,6 +53,7 @@ const ThemedApp = () => {
             <Route path="produtos-totem" element={<ProdutosTotem />} />
             <Route path="produtos-totem/novo" element={<ProdutoForm />} />
             <Route path="produtos-totem/:id/editar" element={<ProdutoForm />} />
+            <Route path="series-totem" element={<SeriesTotem />} />
             <Route path="tenants"    element={<ProtectedRoute requireRole="superadmin"><Tenants /></ProtectedRoute>} />
             <Route path="configuracoes">
               <Route path="add-web"    element={<AddWeb />} />
