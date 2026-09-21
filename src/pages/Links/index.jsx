@@ -1,11 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Table, Button, Switch, Popconfirm, Typography, Space, message, Empty, Card, Statistic, Row, Col, Image } from 'antd';
-import { PlusOutlined, DeleteOutlined, EditOutlined, LinkOutlined, HolderOutlined, CopyOutlined, DownloadOutlined } from '@ant-design/icons';
+import { PlusOutlined, DeleteOutlined, EditOutlined, LinkOutlined, HolderOutlined, CopyOutlined, DownloadOutlined, BarChartOutlined } from '@ant-design/icons';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { linkService } from '../../services/linkService';
+import LinksAnalyticsModal from './LinksAnalyticsModal';
 
 const { Text, Link: TextLink } = Typography;
 
@@ -54,6 +55,7 @@ export default function Links() {
   const [loading, setLoading] = useState(true);
   const [qrInfo, setQrInfo] = useState(null);
   const [qrLoading, setQrLoading] = useState(true);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
   const navigate = useNavigate();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -96,7 +98,7 @@ export default function Links() {
   const handleToggleActive = async (record) => {
     try {
       const updated = await linkService.toggleActive(record.id);
-      setLinks(prev => prev.map(l => (l.id === updated.id ? updated : l)));
+      setLinks(prev => prev.map(l => (l.id === updated.id ? { ...updated, cliques: l.cliques } : l)));
     } catch (e) {
       message.error(e.message);
     }
@@ -109,8 +111,8 @@ export default function Links() {
     const reordered = arrayMove(links, oldIndex, newIndex);
     setLinks(reordered); // otimista — ja mostra a nova ordem na hora
     try {
-      const saved = await linkService.reorder(reordered.map((l) => l.id));
-      setLinks(saved);
+      await linkService.reorder(reordered.map((l) => l.id));
+      load(); // recarrega pra trazer position/cliques atualizados do servidor
     } catch (e) {
       message.error(e.message);
       load(); // desfaz o otimismo se o servidor recusar
@@ -130,6 +132,11 @@ export default function Links() {
           {url.length > 50 ? `${url.slice(0, 50)}…` : url}
         </TextLink>
       ),
+    },
+    {
+      title: 'Cliques', dataIndex: 'cliques', key: 'cliques', width: 90,
+      sorter: (a, b) => (a.cliques ?? 0) - (b.cliques ?? 0),
+      render: (v) => v ?? 0,
     },
     {
       title: 'Ativo', dataIndex: 'active', key: 'active', width: 100,
@@ -165,7 +172,7 @@ export default function Links() {
   return (
     <>
       <Card style={{ marginBottom: 24 }} loading={qrLoading}>
-        <h2 style={{ marginTop: 0 }}>Link e QR code da página</h2>
+        <h2 style={{ marginTop: 0 }}>Link, QR code e métricas da página</h2>
         {qrInfo && (
           <Row gutter={24} align="middle">
             <Col flex="none">
@@ -179,16 +186,17 @@ export default function Links() {
               <Space wrap>
                 <Button icon={<DownloadOutlined />} href={qrInfo.qrPngUrl} download>Baixar PNG</Button>
                 <Button icon={<DownloadOutlined />} href={qrInfo.qrSvgUrl} download>Baixar SVG</Button>
+                <Button icon={<BarChartOutlined />} onClick={() => setAnalyticsOpen(true)}>Relatório de navegação</Button>
               </Space>
               <Row gutter={32} style={{ marginTop: 20 }}>
-                <Col>
-                  <Statistic title="Escaneamentos" value={qrInfo.totalEscaneamentos} />
-                </Col>
+                <Col><Statistic title="Escaneamentos do QR" value={qrInfo.totalEscaneamentos} /></Col>
+                <Col><Statistic title="Visualizações da página" value={qrInfo.totalVisualizacoes} /></Col>
+                <Col><Statistic title="Cliques em botões" value={qrInfo.totalCliques} /></Col>
                 <Col>
                   <Statistic
-                    title="Último escaneamento"
-                    value={qrInfo.ultimoEscaneamentoEm
-                      ? new Date(qrInfo.ultimoEscaneamentoEm).toLocaleString('pt-BR')
+                    title="Último acesso"
+                    value={qrInfo.ultimoAcessoEm
+                      ? new Date(qrInfo.ultimoAcessoEm).toLocaleString('pt-BR')
                       : '—'}
                   />
                 </Col>
@@ -229,6 +237,8 @@ export default function Links() {
           />
         </SortableContext>
       </DndContext>
+
+      <LinksAnalyticsModal open={analyticsOpen} onClose={() => setAnalyticsOpen(false)} />
     </>
   );
 }
