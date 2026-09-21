@@ -43,6 +43,10 @@ const Login = () => {
       // Usa window.location p/ navegação cross-origin (o cookie Lax é enviado em top-level GET).
       if (redirect && /^https:\/\/[a-z0-9.-]+\.eventifylab\.com(\/|$|\?)/i.test(redirect)) {
         window.location.href = redirect;
+      } else if (slug) {
+        // Portal do cliente (Fase 4): acesso via {tenant}.eventifylab.com vai pro
+        // /admin, não pro /dashboard staff.
+        navigate('/admin');
       } else {
         navigate('/dashboard');
       }
