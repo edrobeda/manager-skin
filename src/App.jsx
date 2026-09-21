@@ -13,6 +13,11 @@ import ProdutosTotem from './pages/ProdutosTotem';
 import ProdutoForm from './pages/ProdutosTotem/ProdutoForm';
 import { Backup, AddWeb, BasicAuth } from './pages/Configuracoes';
 import DashboardLayout from './layouts/DashboardLayout';
+import PortalLayout from './layouts/PortalLayout';
+import CadastroFiscal from './pages/Portal/CadastroFiscal';
+import Contratos from './pages/Portal/Contratos';
+import Calendario from './pages/Portal/Calendario';
+import Faturas from './pages/Portal/Faturas';
 import './App.css';
 
 const ProtectedRoute = ({ children, requireRole }) => {
@@ -58,6 +63,16 @@ const ThemedApp = () => {
               <Route path="backup"     element={<Backup />} />
               <Route path="basic-auth" element={<ProtectedRoute requireRole="superadmin"><BasicAuth /></ProtectedRoute>} />
             </Route>
+          </Route>
+          <Route
+            path="/admin"
+            element={<ProtectedRoute><PortalLayout /></ProtectedRoute>}
+          >
+            <Route index element={<Navigate to="/admin/cadastro-fiscal" replace />} />
+            <Route path="cadastro-fiscal" element={<CadastroFiscal />} />
+            <Route path="contratos"       element={<Contratos />} />
+            <Route path="calendario"      element={<Calendario />} />
+            <Route path="faturas"         element={<Faturas />} />
           </Route>
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
