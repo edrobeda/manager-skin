@@ -4,7 +4,7 @@ import {
   DashboardOutlined, UserOutlined, SettingOutlined, TeamOutlined,
   CalendarOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
   TrophyOutlined, FormOutlined, GlobalOutlined, BankOutlined, SafetyOutlined, KeyOutlined,
-  CloudUploadOutlined, ShopOutlined, CodeOutlined,
+  CloudUploadOutlined, ShopOutlined, CodeOutlined, LinkOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
@@ -46,6 +46,7 @@ const DashboardLayout = () => {
     { key: '/dashboard/formularios', icon: <FormOutlined />,      label: 'Formulários' },
     { key: '/dashboard/usuarios',    icon: <UserOutlined />,      label: 'Usuários' },
     { key: '/dashboard/uploads',     icon: <CloudUploadOutlined />, label: 'Uploads' },
+    ...(isAdmin ? [{ key: '/dashboard/links', icon: <LinkOutlined />, label: 'Links (eventifylab.com/links)' }] : []),
     ...(isAdmin ? [{ key: '/dashboard/produtos-totem', icon: <ShopOutlined />, label: 'Produtos Totem' }] : []),
     ...(isSuper ? [{ key: 'ext:opencode', icon: <CodeOutlined />, label: 'OpenCode' }] : []),
     ...(isAdmin ? [{
