@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Button, Card, Input, Form, InputNumber, Checkbox, Space, message } from 'antd';
+import { Button, Card, Input, Form, Checkbox, Space, message } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import { linkService } from '../../services/linkService';
 
@@ -87,13 +87,15 @@ export default function LinkForm() {
             <Input placeholder="https://.../icone.svg" />
           </Form.Item>
 
-          <Form.Item name="position" label="Ordem de exibição" initialValue={0}>
-            <InputNumber min={0} style={{ width: '100%' }} />
-          </Form.Item>
-
           <Form.Item name="active" valuePropName="checked" initialValue={true}>
             <Checkbox>Ativo (aparece em eventifylab.com/links)</Checkbox>
           </Form.Item>
+
+          {!editing && (
+            <p style={{ color: '#888', fontSize: 13, marginTop: -8 }}>
+              O link novo entra no fim da lista — a ordem é ajustada arrastando na tela anterior.
+            </p>
+          )}
 
           <Button type="primary" icon={<SaveOutlined />} onClick={handleSave} loading={saving}>
             Salvar
