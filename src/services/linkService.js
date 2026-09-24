@@ -9,4 +9,5 @@ export const linkService = {
   toggleActive: (id)        => api.patch(`/links/${id}/active`).then(d => d.link),
   reorder:      (ids)       => api.post('/links/reorder', { ids }).then(d => d.links),
   getQrInfo:    ()          => api.get('/links/qr-info'),
+  getAnalytics: ()          => api.get('/links/analytics').then(d => d.acessos),
 };
