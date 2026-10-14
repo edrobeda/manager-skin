@@ -6,6 +6,7 @@ import {
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
+import VersionFooter from '../components/VersionFooter';
 
 const { Header, Sider, Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -111,6 +112,7 @@ const PortalLayout = () => {
         }}>
           <Outlet />
         </Content>
+        <VersionFooter />
       </Layout>
     </Layout>
   );
