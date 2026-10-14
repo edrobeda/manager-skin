@@ -11,6 +11,8 @@ import Leads from './pages/Leads';
 import Uploads from './pages/Uploads';
 import ProdutosTotem from './pages/ProdutosTotem';
 import ProdutoForm from './pages/ProdutosTotem/ProdutoForm';
+import Produtos from './pages/Produtos';
+import Cobranca from './pages/Cobranca';
 import Links from './pages/Links';
 import LinkForm from './pages/Links/LinkForm';
 import { Backup, AddWeb, BasicAuth } from './pages/Configuracoes';
@@ -63,6 +65,8 @@ const ThemedApp = () => {
             <Route path="links/novo" element={<LinkForm />} />
             <Route path="links/:id/editar" element={<LinkForm />} />
             <Route path="tenants"    element={<ProtectedRoute requireRole="superadmin"><Tenants /></ProtectedRoute>} />
+            <Route path="produtos"   element={<ProtectedRoute requireRole="superadmin"><Produtos /></ProtectedRoute>} />
+            <Route path="cobranca"   element={<ProtectedRoute requireRole="superadmin"><Cobranca /></ProtectedRoute>} />
             <Route path="configuracoes">
               <Route path="add-web"    element={<AddWeb />} />
               <Route path="backup"     element={<Backup />} />
