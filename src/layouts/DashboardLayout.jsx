@@ -4,7 +4,7 @@ import {
   DashboardOutlined, UserOutlined, SettingOutlined, TeamOutlined,
   CalendarOutlined, LogoutOutlined, MenuFoldOutlined, MenuUnfoldOutlined,
   TrophyOutlined, FormOutlined, GlobalOutlined, BankOutlined, SafetyOutlined, KeyOutlined,
-  CloudUploadOutlined, ShopOutlined, CodeOutlined, LinkOutlined,
+  CloudUploadOutlined, ShopOutlined, CodeOutlined, LinkOutlined, DollarOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useTenant } from '../contexts/TenantContext';
@@ -41,6 +41,8 @@ const DashboardLayout = () => {
   const menuItems = [
     { key: '/dashboard',             icon: <DashboardOutlined />, label: 'Dashboard' },
     ...(isSuper ? [{ key: '/dashboard/tenants', icon: <BankOutlined />, label: 'Clientes' }] : []),
+    ...(isSuper ? [{ key: '/dashboard/produtos', icon: <ShopOutlined />, label: 'Produtos' }] : []),
+    ...(isSuper ? [{ key: '/dashboard/cobranca', icon: <DollarOutlined />, label: 'Cobrança' }] : []),
     { key: '/dashboard/eventos',      icon: <CalendarOutlined />,  label: 'Eventos' },
     { key: '/dashboard/leads',       icon: <TeamOutlined />,      label: 'Leads' },
     { key: '/dashboard/sorteios',    icon: <TrophyOutlined />,    label: 'Sorteios' },

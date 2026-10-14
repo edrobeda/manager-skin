@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, Table, Button, Space, Modal, Form, Input, message, Tag, Popconfirm, Drawer, Badge, DatePicker, Alert, Typography, Descriptions, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, TeamOutlined, StopOutlined, CheckCircleOutlined, RocketOutlined, KeyOutlined, CopyOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, TeamOutlined, StopOutlined, CheckCircleOutlined, RocketOutlined, KeyOutlined, CopyOutlined, ShopOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { api } from '../../services/api';
 
@@ -50,6 +50,11 @@ const Tenants = () => {
   const [loading, setLoading] = useState(false);
   const [modal, setModal] = useState({ open: false, editing: null });
   const [usersDrawer, setUsersDrawer] = useState({ open: false, tenant: null, users: [], loadingUsers: false });
+  // produtos contratados do core (tabela tenant_produtos, ver routes/core.js
+  // do manager-api) — resolvido por SLUG, não id: core.tenants é uma CÓPIA
+  // de mydb.tenants da Fase 0 do ROADMAP, ids podem ter divergido desde
+  // então pra tenant criado depois daquela migração (ver ROADMAP.md §13).
+  const [contratosDrawer, setContratosDrawer] = useState({ open: false, tenant: null, contratos: [], tenantNoCore: true, loading: false });
   const [form] = Form.useForm();
   const [userForm] = Form.useForm();
   const [userModal, setUserModal] = useState(false);
@@ -116,6 +121,17 @@ const Tenants = () => {
       message.success(data.tenant.ativo ? 'Acesso liberado' : 'Acesso revogado');
     } catch (err) {
       message.error(err.message);
+    }
+  };
+
+  const openContratos = async (tenant) => {
+    setContratosDrawer({ open: true, tenant, contratos: [], tenantNoCore: true, loading: true });
+    try {
+      const data = await api.get(`/core/tenants/${tenant.slug}/produtos`);
+      setContratosDrawer(d => ({ ...d, contratos: data.contratos, tenantNoCore: data.tenant_no_core, loading: false }));
+    } catch (err) {
+      message.error(err.message);
+      setContratosDrawer(d => ({ ...d, loading: false }));
     }
   };
 
@@ -234,6 +250,7 @@ const Tenants = () => {
         <Space>
           <Button size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} />
           <Button size="small" icon={<TeamOutlined />} onClick={() => openUsers(r)} />
+          <Button size="small" icon={<ShopOutlined />} onClick={() => openContratos(r)} title="Produtos contratados" />
           <Button size="small" type="primary" icon={<RocketOutlined />} onClick={() => openProvisionar(r)} title="Provisionar Game" />
           {r.game_credentials && (
             <Tooltip title="Credenciais de acesso">
@@ -276,6 +293,20 @@ const Tenants = () => {
         </Popconfirm>
       ),
     },
+  ];
+
+  const contratoColumns = [
+    { title: 'Produto', dataIndex: 'produto_nome', key: 'produto_nome' },
+    { title: 'Plano', dataIndex: 'plano', key: 'plano', render: v => <Tag>{v}</Tag> },
+    {
+      title: 'Status', dataIndex: 'status', key: 'status',
+      render: v => <Tag color={v === 'ativo' ? 'green' : v === 'suspenso' ? 'red' : 'default'}>{(v || '').toUpperCase()}</Tag>,
+    },
+    {
+      title: 'Valor', dataIndex: 'valor_centavos', key: 'valor_centavos',
+      render: v => ((v || 0) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+    },
+    { title: 'Ciclo', dataIndex: 'ciclo', key: 'ciclo' },
   ];
 
   return (
@@ -450,6 +481,33 @@ const Tenants = () => {
           dataSource={usersDrawer.users}
           rowKey="id"
           loading={usersDrawer.loadingUsers}
+          pagination={false}
+          size="small"
+          scroll={{ x: 'max-content' }}
+        />
+      </Drawer>
+
+      {/* Drawer de produtos contratados (core — tenant_produtos) */}
+      <Drawer
+        title={`Produtos contratados — ${contratosDrawer.tenant?.nome || ''}`}
+        open={contratosDrawer.open}
+        onClose={() => setContratosDrawer({ open: false, tenant: null, contratos: [], tenantNoCore: true, loading: false })}
+        width="min(600px, 100vw)"
+      >
+        {!contratosDrawer.loading && !contratosDrawer.tenantNoCore && (
+          <Alert
+            type="warning"
+            showIcon
+            style={{ marginBottom: 16 }}
+            message="Tenant sem registro no core"
+            description="Este cliente ainda não existe no banco eventifylab (core) — provavelmente foi criado antes da Fase 0 da migração, ou nunca teve produto do core contratado. Nenhum contrato pra mostrar."
+          />
+        )}
+        <Table
+          columns={contratoColumns}
+          dataSource={contratosDrawer.contratos}
+          rowKey="id"
+          loading={contratosDrawer.loading}
           pagination={false}
           size="small"
           scroll={{ x: 'max-content' }}
