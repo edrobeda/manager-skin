@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Card, Table, Button, Space, Modal, Form, Input, message, Tag, Popconfirm, Drawer, Badge, DatePicker, Alert, Typography, Descriptions, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, TeamOutlined, StopOutlined, CheckCircleOutlined, RocketOutlined, KeyOutlined, CopyOutlined, ShopOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Space, Modal, Form, Input, Select, InputNumber, Radio, message, Tag, Popconfirm, Drawer, Badge, DatePicker, Alert, Typography, Descriptions, Tooltip } from 'antd';
+import { PlusOutlined, EditOutlined, TeamOutlined, StopOutlined, CheckCircleOutlined, RocketOutlined, KeyOutlined, CopyOutlined, ShopOutlined, DollarOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { api } from '../../services/api';
 
@@ -55,6 +55,12 @@ const Tenants = () => {
   // de mydb.tenants da Fase 0 do ROADMAP, ids podem ter divergido desde
   // então pra tenant criado depois daquela migração (ver ROADMAP.md §13).
   const [contratosDrawer, setContratosDrawer] = useState({ open: false, tenant: null, contratos: [], tenantNoCore: true, loading: false });
+  const [sincronizando, setSincronizando] = useState(false);
+  const [contratoModal, setContratoModal] = useState(false);
+  const [contratoForm] = Form.useForm();
+  const [produtosCatalogo, setProdutosCatalogo] = useState([]);
+  const [eventosTenant, setEventosTenant] = useState([]);
+  const [confirmando, setConfirmando] = useState(null); // id do contrato sendo confirmado
   const [form] = Form.useForm();
   const [userForm] = Form.useForm();
   const [userModal, setUserModal] = useState(false);
@@ -133,6 +139,78 @@ const Tenants = () => {
       message.error(err.message);
       setContratosDrawer(d => ({ ...d, loading: false }));
     }
+  };
+
+  const sincronizarComCore = async () => {
+    if (!contratosDrawer.tenant) return;
+    setSincronizando(true);
+    try {
+      await api.post(`/core/tenants/${contratosDrawer.tenant.slug}/sincronizar`, {});
+      message.success('Tenant criado no core!');
+      openContratos(contratosDrawer.tenant);
+    } catch (err) {
+      message.error(err.message);
+    }
+    setSincronizando(false);
+  };
+
+  const openNovoContrato = async () => {
+    contratoForm.resetFields();
+    contratoForm.setFieldsValue({ modo: 'uso_livre', plano: 'trial', ciclo: 'por_evento' });
+    setContratoModal(true);
+    try {
+      const [produtosData, eventosData] = await Promise.all([
+        api.get('/core/produtos'),
+        api.get(`/core/tenants/${contratosDrawer.tenant.slug}/eventos`),
+      ]);
+      setProdutosCatalogo(produtosData.produtos || []);
+      setEventosTenant(eventosData.eventos || []);
+    } catch (err) {
+      message.error(err.message);
+    }
+  };
+
+  const criarContrato = async () => {
+    try {
+      const values = await contratoForm.validateFields();
+      await api.post(`/core/tenants/${contratosDrawer.tenant.slug}/produtos`, {
+        produto_id: values.produto_id,
+        plano: values.plano,
+        valor_centavos: Math.round((values.valor_reais || 0) * 100),
+        ciclo: values.ciclo,
+        modo: values.modo,
+        evento_id: values.evento_id,
+        data_fim: values.data_fim ? values.data_fim.toISOString() : undefined,
+      });
+      message.success('Contrato criado!');
+      setContratoModal(false);
+      openContratos(contratosDrawer.tenant);
+    } catch (err) {
+      if (err.message) message.error(err.message);
+    }
+  };
+
+  const confirmarContrato = async (contrato) => {
+    setConfirmando(contrato.id);
+    try {
+      const data = await api.post(`/core/tenant-produtos/${contrato.id}/confirmar`, {});
+      if (data.fatura) {
+        Modal.success({
+          title: 'Contrato confirmado — fatura gerada',
+          content: data.emissao?.link_pagamento
+            ? <span>Link de pagamento: <a href={data.emissao.link_pagamento} target="_blank" rel="noreferrer">{data.emissao.link_pagamento}</a></span>
+            : (data.erroEmissao
+              ? `Fatura criada localmente, mas não foi emitida na Asaas: ${data.erroEmissao}`
+              : 'Fatura criada localmente.'),
+        });
+      } else {
+        message.success('Contrato confirmado!');
+      }
+      openContratos(contratosDrawer.tenant);
+    } catch (err) {
+      message.error(err.message);
+    }
+    setConfirmando(null);
   };
 
   const openUsers = async (tenant) => {
@@ -300,13 +378,25 @@ const Tenants = () => {
     { title: 'Plano', dataIndex: 'plano', key: 'plano', render: v => <Tag>{v}</Tag> },
     {
       title: 'Status', dataIndex: 'status', key: 'status',
-      render: v => <Tag color={v === 'ativo' ? 'green' : v === 'suspenso' ? 'red' : 'default'}>{(v || '').toUpperCase()}</Tag>,
+      render: v => <Tag color={v === 'ativo' ? 'green' : v === 'suspenso' ? 'red' : v === 'pendente' ? 'orange' : 'default'}>{(v || '').toUpperCase()}</Tag>,
     },
     {
       title: 'Valor', dataIndex: 'valor_centavos', key: 'valor_centavos',
       render: v => ((v || 0) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
     },
     { title: 'Ciclo', dataIndex: 'ciclo', key: 'ciclo' },
+    {
+      title: '', key: 'confirmar', width: 110,
+      render: (_, r) => r.status !== 'ativo' ? (
+        <Button
+          size="small" type="primary" icon={<DollarOutlined />}
+          loading={confirmando === r.id}
+          onClick={() => confirmarContrato(r)}
+        >
+          Confirmar
+        </Button>
+      ) : null,
+    },
   ];
 
   return (
@@ -493,6 +583,9 @@ const Tenants = () => {
         open={contratosDrawer.open}
         onClose={() => setContratosDrawer({ open: false, tenant: null, contratos: [], tenantNoCore: true, loading: false })}
         width="min(600px, 100vw)"
+        extra={contratosDrawer.tenantNoCore && (
+          <Button type="primary" size="small" icon={<PlusOutlined />} onClick={openNovoContrato}>Novo contrato</Button>
+        )}
       >
         {!contratosDrawer.loading && !contratosDrawer.tenantNoCore && (
           <Alert
@@ -500,7 +593,8 @@ const Tenants = () => {
             showIcon
             style={{ marginBottom: 16 }}
             message="Tenant sem registro no core"
-            description="Este cliente ainda não existe no banco eventifylab (core) — provavelmente foi criado antes da Fase 0 da migração, ou nunca teve produto do core contratado. Nenhum contrato pra mostrar."
+            description="Este cliente ainda não existe no banco eventifylab (core) — provavelmente foi criado antes da Fase 0 da migração, ou nunca teve produto do core contratado."
+            action={<Button size="small" loading={sincronizando} onClick={sincronizarComCore}>Criar no core agora</Button>}
           />
         )}
         <Table
@@ -513,6 +607,75 @@ const Tenants = () => {
           scroll={{ x: 'max-content' }}
         />
       </Drawer>
+
+      {/* Modal novo contrato (core — tenant_produtos + ativação) */}
+      <Modal
+        title={`Novo contrato — ${contratosDrawer.tenant?.nome || ''}`}
+        open={contratoModal}
+        onOk={criarContrato}
+        onCancel={() => setContratoModal(false)}
+        okText="Criar contrato"
+        cancelText="Cancelar"
+      >
+        <Form form={contratoForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item name="produto_id" label="Produto" rules={[{ required: true }]}>
+            <Select
+              placeholder="Selecione o produto"
+              options={produtosCatalogo.map(p => ({ value: p.id, label: p.nome }))}
+            />
+          </Form.Item>
+          <Form.Item name="modo" label="Vínculo" rules={[{ required: true }]}>
+            <Radio.Group>
+              <Radio value="uso_livre">Uso livre (sem evento — trial ou contínuo)</Radio>
+              <Radio value="evento">Evento existente</Radio>
+            </Radio.Group>
+          </Form.Item>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prev, cur) => prev.modo !== cur.modo}
+          >
+            {({ getFieldValue }) => getFieldValue('modo') === 'evento' && (
+              <Form.Item name="evento_id" label="Evento" rules={[{ required: true }]}>
+                <Select
+                  placeholder="Selecione o evento"
+                  options={eventosTenant.map(e => ({ value: e.id, label: e.nome }))}
+                />
+              </Form.Item>
+            )}
+          </Form.Item>
+          <Form.Item name="plano" label="Plano" rules={[{ required: true }]}>
+            <Select options={[
+              { value: 'trial', label: 'Trial' },
+              { value: 'ativo', label: 'Ativo (pago)' },
+              { value: 'legado', label: 'Legado (sem cobrança)' },
+            ]} />
+          </Form.Item>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prev, cur) => prev.plano !== cur.plano}
+          >
+            {({ getFieldValue }) => getFieldValue('plano') === 'trial' && (
+              <Form.Item
+                name="data_fim"
+                label="Trial expira em"
+                extra="Deixe em branco pra usar o padrão de 14 dias."
+              >
+                <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
+              </Form.Item>
+            )}
+          </Form.Item>
+          <Form.Item name="valor_reais" label="Valor (R$)" initialValue={0}>
+            <InputNumber style={{ width: '100%' }} min={0} step={10} decimalSeparator="," />
+          </Form.Item>
+          <Form.Item name="ciclo" label="Ciclo" rules={[{ required: true }]}>
+            <Select options={[
+              { value: 'por_evento', label: 'Por evento' },
+              { value: 'mensal', label: 'Mensal' },
+              { value: 'anual', label: 'Anual' },
+            ]} />
+          </Form.Item>
+        </Form>
+      </Modal>
 
       {/* Modal criar usuário */}
       <Modal
