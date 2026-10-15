@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Card, Table, Button, Space, Modal, Form, Input, Select, InputNumber, Radio, message, Tag, Popconfirm, Drawer, Badge, DatePicker, Alert, Typography, Descriptions, Tooltip } from 'antd';
-import { PlusOutlined, EditOutlined, TeamOutlined, StopOutlined, CheckCircleOutlined, RocketOutlined, KeyOutlined, CopyOutlined, ShopOutlined, DollarOutlined } from '@ant-design/icons';
+import { PlusOutlined, EditOutlined, TeamOutlined, StopOutlined, CheckCircleOutlined, RocketOutlined, KeyOutlined, CopyOutlined, ShopOutlined, DollarOutlined, LinkOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { api } from '../../services/api';
 
@@ -60,6 +60,8 @@ const Tenants = () => {
   const [contratoForm] = Form.useForm();
   const [produtosCatalogo, setProdutosCatalogo] = useState([]);
   const [eventosTenant, setEventosTenant] = useState([]);
+  const [dominioModal, setDominioModal] = useState({ open: false, ativacaoId: null });
+  const [dominioForm] = Form.useForm();
   const [confirmando, setConfirmando] = useState(null); // id do contrato sendo confirmado
   const [form] = Form.useForm();
   const [userForm] = Form.useForm();
@@ -156,7 +158,16 @@ const Tenants = () => {
 
   const openNovoContrato = async () => {
     contratoForm.resetFields();
-    contratoForm.setFieldsValue({ modo: 'uso_livre', plano: 'trial', ciclo: 'por_evento' });
+    contratoForm.setFieldsValue({
+      modo: 'uso_livre',
+      plano: 'trial',
+      ciclo: 'por_evento',
+      // Vitrine/Jogo não têm domínio próprio — sem registrar um host em
+      // core.dominios a ativação não tem URL nenhuma funcionando (achado
+      // real, ver ROADMAP.md). Sugere o padrão {slug}.eventifylab.com,
+      // staff pode trocar ou limpar pra vincular depois.
+      dominio: `${contratosDrawer.tenant.slug}.eventifylab.com`,
+    });
     setContratoModal(true);
     try {
       const [produtosData, eventosData] = await Promise.all([
@@ -173,7 +184,7 @@ const Tenants = () => {
   const criarContrato = async () => {
     try {
       const values = await contratoForm.validateFields();
-      await api.post(`/core/tenants/${contratosDrawer.tenant.slug}/produtos`, {
+      const data = await api.post(`/core/tenants/${contratosDrawer.tenant.slug}/produtos`, {
         produto_id: values.produto_id,
         plano: values.plano,
         valor_centavos: Math.round((values.valor_reais || 0) * 100),
@@ -181,9 +192,32 @@ const Tenants = () => {
         modo: values.modo,
         evento_id: values.evento_id,
         data_fim: values.data_fim ? values.data_fim.toISOString() : undefined,
+        dominio: values.dominio?.trim() || undefined,
       });
-      message.success('Contrato criado!');
+      if (data.dominio_erro) {
+        message.warning(`Contrato criado, mas o domínio não foi vinculado: ${data.dominio_erro}. Vincule outro pela coluna "Domínio".`);
+      } else {
+        message.success('Contrato criado!');
+      }
       setContratoModal(false);
+      openContratos(contratosDrawer.tenant);
+    } catch (err) {
+      if (err.message) message.error(err.message);
+    }
+  };
+
+  const openVincularDominio = (contrato) => {
+    dominioForm.resetFields();
+    dominioForm.setFieldsValue({ dominio: `${contratosDrawer.tenant.slug}.eventifylab.com` });
+    setDominioModal({ open: true, ativacaoId: contrato.ativacao_id });
+  };
+
+  const vincularDominio = async () => {
+    try {
+      const values = await dominioForm.validateFields();
+      await api.post(`/core/ativacoes/${dominioModal.ativacaoId}/dominio`, { host: values.dominio.trim() });
+      message.success('Domínio vinculado!');
+      setDominioModal({ open: false, ativacaoId: null });
       openContratos(contratosDrawer.tenant);
     } catch (err) {
       if (err.message) message.error(err.message);
@@ -385,6 +419,14 @@ const Tenants = () => {
       render: v => ((v || 0) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
     },
     { title: 'Ciclo', dataIndex: 'ciclo', key: 'ciclo' },
+    {
+      title: 'Domínio', dataIndex: 'dominio', key: 'dominio',
+      render: (v, r) => v
+        ? <a href={`https://${v}`} target="_blank" rel="noreferrer">{v}</a>
+        : (r.ativacao_id
+          ? <Button size="small" icon={<LinkOutlined />} onClick={() => openVincularDominio(r)}>Vincular</Button>
+          : <Tag color="default">sem ativação</Tag>),
+    },
     {
       title: '', key: 'confirmar', width: 110,
       render: (_, r) => r.status !== 'ativo' ? (
@@ -673,6 +715,34 @@ const Tenants = () => {
               { value: 'mensal', label: 'Mensal' },
               { value: 'anual', label: 'Anual' },
             ]} />
+          </Form.Item>
+          <Form.Item
+            name="dominio"
+            label="Domínio"
+            extra="Precisa de um domínio pra ter URL funcionando (Vitrine/Jogo não resolvem pelo slug sozinhos). Deixe em branco pra vincular depois."
+          >
+            <Input placeholder="ex: vetnil.eventifylab.com" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal vincular/trocar domínio de uma ativação */}
+      <Modal
+        title="Vincular domínio"
+        open={dominioModal.open}
+        onOk={vincularDominio}
+        onCancel={() => setDominioModal({ open: false, ativacaoId: null })}
+        okText="Vincular"
+        cancelText="Cancelar"
+      >
+        <Form form={dominioForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            name="dominio"
+            label="Domínio"
+            rules={[{ required: true }]}
+            extra="O host precisa estar sob *.eventifylab.com (ou outro domínio já apontado pro Caddy) pra resolver de verdade."
+          >
+            <Input placeholder="ex: vetnil.eventifylab.com" />
           </Form.Item>
         </Form>
       </Modal>
