@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Table, Button, Modal, Form, Input, DatePicker, Tag, Space, Popconfirm, message, Typography
+  Table, Button, Modal, Form, Input, Select, DatePicker, Tag, Space, Popconfirm, message, Typography
 } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
@@ -21,6 +21,7 @@ const STATUS_COLOR = {
 export default function Eventos() {
   const { isAdmin, isSuper } = useTenant();
   const [eventos, setEventos] = useState([]);
+  const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -41,6 +42,14 @@ export default function Eventos() {
   };
 
   useEffect(() => { load(); }, []);
+
+  // Superadmin vê/cria evento de qualquer tenant (routes/eventos.js exige
+  // tenant_id no body pra esse role, já que não tem um implícito como o
+  // admin de 1 tenant só) — carrega a lista só pra montar o Select.
+  useEffect(() => {
+    if (!isSuper) return;
+    api.get('/tenants').then((data) => setTenants(data.tenants)).catch(() => {});
+  }, [isSuper]);
 
   const openCreate = () => {
     setEditing(null);
@@ -68,6 +77,7 @@ export default function Eventos() {
         data_inicio: data_inicio.toISOString(),
         data_fim: data_fim.toISOString(),
       };
+      if (isSuper && !editing) payload.tenant_id = values.tenant_id;
 
       if (editing) {
         await api.put(`/eventos/${editing.id}`, payload);
@@ -94,6 +104,12 @@ export default function Eventos() {
   };
 
   const columns = [
+    ...(isSuper ? [{
+      title: 'Tenant',
+      dataIndex: 'tenant_nome',
+      key: 'tenant_nome',
+      render: (v, r) => v || <Tag color="default">{r.tenant_id}</Tag>,
+    }] : []),
     {
       title: 'Nome',
       dataIndex: 'nome',
@@ -167,6 +183,16 @@ export default function Eventos() {
         cancelText="Cancelar"
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
+          {isSuper && !editing && (
+            <Form.Item name="tenant_id" label="Tenant" rules={[{ required: true, message: 'Selecione o tenant' }]}>
+              <Select
+                placeholder="Selecione o cliente"
+                showSearch
+                optionFilterProp="label"
+                options={tenants.map((t) => ({ value: t.id, label: t.nome }))}
+              />
+            </Form.Item>
+          )}
           <Form.Item name="nome" label="Nome do evento" rules={[{ required: true }]}>
             <Input placeholder="Ex: Feira de Tecnologia SP" />
           </Form.Item>
