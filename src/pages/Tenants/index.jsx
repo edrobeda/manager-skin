@@ -62,6 +62,8 @@ const Tenants = () => {
   const [eventosTenant, setEventosTenant] = useState([]);
   const [dominioModal, setDominioModal] = useState({ open: false, ativacaoId: null });
   const [dominioForm] = Form.useForm();
+  const [eventoModal, setEventoModal] = useState({ open: false, ativacaoId: null });
+  const [eventoForm] = Form.useForm();
   const [confirmando, setConfirmando] = useState(null); // id do contrato sendo confirmado
   const [form] = Form.useForm();
   const [userForm] = Form.useForm();
@@ -218,6 +220,30 @@ const Tenants = () => {
       await api.post(`/core/ativacoes/${dominioModal.ativacaoId}/dominio`, { host: values.dominio.trim() });
       message.success('Domínio vinculado!');
       setDominioModal({ open: false, ativacaoId: null });
+      openContratos(contratosDrawer.tenant);
+    } catch (err) {
+      if (err.message) message.error(err.message);
+    }
+  };
+
+  const openEditarEvento = (contrato) => {
+    eventoForm.resetFields();
+    if (contrato.evento_data_inicio && contrato.evento_data_fim) {
+      eventoForm.setFieldsValue({ periodo: [dayjs(contrato.evento_data_inicio), dayjs(contrato.evento_data_fim)] });
+    }
+    setEventoModal({ open: true, ativacaoId: contrato.ativacao_id });
+  };
+
+  const salvarPeriodoEvento = async () => {
+    try {
+      const values = await eventoForm.validateFields();
+      const [data_inicio, data_fim] = values.periodo;
+      await api.put(`/core/ativacoes/${eventoModal.ativacaoId}/periodo`, {
+        data_inicio: data_inicio.toISOString(),
+        data_fim: data_fim.toISOString(),
+      });
+      message.success('Período do evento atualizado!');
+      setEventoModal({ open: false, ativacaoId: null });
       openContratos(contratosDrawer.tenant);
     } catch (err) {
       if (err.message) message.error(err.message);
@@ -419,6 +445,19 @@ const Tenants = () => {
       render: v => ((v || 0) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
     },
     { title: 'Ciclo', dataIndex: 'ciclo', key: 'ciclo' },
+    {
+      title: 'Evento', key: 'evento',
+      render: (_, r) => r.ativacao_id ? (
+        <Space direction="vertical" size={0}>
+          {r.evento_data_inicio && r.evento_data_fim && (
+            <span style={{ fontSize: 12, color: '#888' }}>
+              {dayjs(r.evento_data_inicio).format('DD/MM/YY')} – {dayjs(r.evento_data_fim).format('DD/MM/YY')}
+            </span>
+          )}
+          <Button size="small" icon={<EditOutlined />} onClick={() => openEditarEvento(r)}>Período</Button>
+        </Space>
+      ) : null,
+    },
     {
       title: 'Domínio', dataIndex: 'dominio', key: 'dominio',
       render: (v, r) => v
@@ -743,6 +782,31 @@ const Tenants = () => {
             extra="O host precisa estar sob *.eventifylab.com (ou outro domínio já apontado pro Caddy) pra resolver de verdade."
           >
             <Input placeholder="ex: vetnil.eventifylab.com" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* Modal editar período do evento vinculado a uma ativação */}
+      <Modal
+        title="Período do evento"
+        open={eventoModal.open}
+        onOk={salvarPeriodoEvento}
+        onCancel={() => setEventoModal({ open: false, ativacaoId: null })}
+        okText="Salvar"
+        cancelText="Cancelar"
+      >
+        <Form form={eventoForm} layout="vertical" style={{ marginTop: 16 }}>
+          <Form.Item
+            name="periodo"
+            label="Início e fim"
+            rules={[{ required: true, message: 'Informe o período' }]}
+            extra="É essa janela que decide se o produto está ativo pro público — use pra 'colocar um evento novo' num jogo/vitrine já contratado."
+          >
+            <DatePicker.RangePicker
+              showTime={{ format: 'HH:mm' }}
+              format="DD/MM/YYYY HH:mm"
+              style={{ width: '100%' }}
+            />
           </Form.Item>
         </Form>
       </Modal>
